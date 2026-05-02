@@ -1,0 +1,17 @@
+{
+  "type": "number",
+  "title": {
+    "en": "2nd Compressor Hot Water Temp.",
+    "de": "2. Verdichter Vorlauftemp. Warmwasser"
+  },
+  "units": {
+    "en": "°C",
+    "de": "°C"
+  },
+  "decimals": 1,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": false,
+  "icon": "/assets/capabilities/water.svg"
+}

@@ -1,0 +1,17 @@
+{
+  "type": "number",
+  "title": {
+    "en": "ZWE Enable Temperature",
+    "de": "ZWE Freigabe-Temperatur"
+  },
+  "units": {
+    "en": "°C",
+    "de": "°C"
+  },
+  "decimals": 1,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true,
+  "icon": "/assets/capabilities/heating.svg"
+}

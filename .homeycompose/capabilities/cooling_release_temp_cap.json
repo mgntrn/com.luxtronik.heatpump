@@ -1,0 +1,17 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Cooling Release Temperature",
+    "de": "Kühlung Freigabe-Temperatur"
+  },
+  "units": {
+    "en": "°C",
+    "de": "°C"
+  },
+  "decimals": 1,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true,
+  "icon": "/assets/capabilities/measure_water.svg"
+}

@@ -1,0 +1,17 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Max. Outdoor Temperature",
+    "de": "Max. Aussentemperatur"
+  },
+  "units": {
+    "en": "°C",
+    "de": "°C"
+  },
+  "decimals": 1,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": false,
+  "icon": "/assets/capabilities/temperature.svg"
+}

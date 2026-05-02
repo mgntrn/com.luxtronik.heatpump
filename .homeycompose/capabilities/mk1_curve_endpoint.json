@@ -1,0 +1,17 @@
+{
+  "type": "number",
+  "title": {
+    "en": "MK1 Curve Endpoint",
+    "de": "MK1 Kurve Endpunkt"
+  },
+  "units": {
+    "en": "°C",
+    "de": "°C"
+  },
+  "decimals": 1,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": false,
+  "icon": "/assets/capabilities/heating.svg"
+}

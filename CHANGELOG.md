@@ -1,5 +1,33 @@
 # Changelog
 
+## [2.0.34] - 2026-05-02
+
+### Added
+- **21 new read-only sensor capabilities** — all configurable via Device Settings, all values read exclusively from the controller:
+  - **Hystereses:** `hotwater_hysteresis` (parameter 74, 0.5–10 K), `return_temp_hysteresis` (parameter 88, conditional)
+  - **Outdoor temperature limits:** `outdoor_temp_max` (parameter 91), `outdoor_temp_min` (parameter 92)
+  - **Heating limits:** `heating_limit` (parameter 700), `temp_setback_limit` (parameter 111)
+  - **Heating curve** (conditional on controller visibility): `heating_curve_endpoint` (parameter 11), `heating_curve_offset` (parameter 12), `mk1_curve_endpoint` (parameter 14), `mk1_curve_offset` (parameter 15)
+  - **Heating circuit limits:** `supply_temp_limit` (parameter 149), `return_temp_limit` (parameter 87), `return_temp_min` (parameter 979)
+  - **Setback deltas:** `delta_heating_reduction` (parameter 13), `delta_mk1_reduction` (parameter 16)
+  - **Auxiliary heater / 2nd compressor:** `temp_zwe_enable` (parameter 90), `temp_2nd_comp_heating` (parameter 95), `temp_2nd_comp_hotwater` (parameter 96)
+  - **Cooling** (conditional on cooling enabled): `cooling_release_temp_cap` (parameter 110), `cooling_inlet_temp_cap` (parameter 132)
+  - **Thermal Disinfection Setpoint:** `tdi_target_temperature` (parameter 47, 50–80 °C) — replaces former thermostat widget `target_temperature.tdi`
+- **Flow actions:** Set hot water hysteresis, Set return temperature hysteresis, Set heating limit, Set max. outdoor temperature
+- **Device Settings restructured into 7 groups:** Heizkurve, Betriebsgrenzen Aussentemperatur, Heizkreis-Temperaturgrenzen, Absenkung, Warmwasser, Zuheizer / 2. Verdichter, Kühlung
+- In-app help page updated with all new parameter cards (DE/EN)
+
+### Changed
+- `target_temperature.tdi` (thermostat widget) replaced by `tdi_target_temperature` (read-only sensor); all existing thermal disinfection flows remain fully functional
+- Controller is always the single source of truth — sensor display values come exclusively from each poll, never from app defaults or user settings
+
+### Fixed
+- **Settings UI always shows current controller values:** After each poll, all 21 configurable parameters are synced to their Device Setting via `_syncSetting()` — the settings page no longer shows app defaults after an update
+- **No writes to controller before first successful poll:** `_firstPollDone` flag blocks all `onSettings` writes until the controller has been read at least once — prevents default or stale values from being written during app startup or update
+- **`_shouldWrite` guard:** `onSettings` only writes a value if both `_firstPollDone` is true and the capability already holds a value — closes the gap where Homey initialises new settings with defaults and silently triggers `onSettings`
+
+---
+
 ## [2.0.33] - 2026-04-26
 
 ### Changed

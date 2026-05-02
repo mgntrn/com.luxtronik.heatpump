@@ -17,7 +17,7 @@
     "hotwater_boost_party",
     "hotwater_boost",
     "thermal_disinfection_continuous",
-    "target_temperature.tdi",
+    "tdi_target_temperature",
     "measure_temp_outdoor",
     "measure_temp_hotwater_target",
     "measure_temp_hotwater",
@@ -39,6 +39,26 @@
     "measure_hours_hotwater",
     "cooling_operation_mode",
     "measure_hours_cooling",
+    "hotwater_hysteresis",
+    "return_temp_hysteresis",
+    "heating_limit",
+    "outdoor_temp_max",
+    "heating_curve_endpoint",
+    "heating_curve_offset",
+    "mk1_curve_endpoint",
+    "mk1_curve_offset",
+    "outdoor_temp_min",
+    "temp_setback_limit",
+    "supply_temp_limit",
+    "return_temp_limit",
+    "return_temp_min",
+    "delta_heating_reduction",
+    "delta_mk1_reduction",
+    "temp_zwe_enable",
+    "temp_2nd_comp_heating",
+    "temp_2nd_comp_hotwater",
+    "cooling_release_temp_cap",
+    "cooling_inlet_temp_cap",
     "alarm_generic",
     "last_poll",
     "firmware_version"
@@ -189,17 +209,6 @@
       "preventInsights": true,
       "preventTag": true
     },
-    "target_temperature.tdi": {
-      "title": {
-        "en": "Thermal Disinfection Setpoint (TDI)",
-        "de": "Thermische Desinfektion Soll (TDI-Solltemp)"
-      },
-      "min": 50,
-      "max": 80,
-      "step": 0.5,
-      "preventInsights": true,
-      "preventTag": true
-    },
     "measure_temperature.heating": {
       "title": {
         "en": "Flow Temperature",
@@ -331,6 +340,384 @@
           "hint": {
             "en": "How often the watchdog checks if a successful poll has occurred. Should be <= poll interval × watchdog threshold (default: 60 s).",
             "de": "Wie oft der Watchdog prüft ob eine erfolgreiche Abfrage stattgefunden hat. Sollte <= Abfrageintervall × Watchdog-Schwellwert sein (Standard: 60 s)."
+          }
+        }
+      ]
+    },
+    {
+      "type": "group",
+      "label": {
+        "en": "Heizkurve / Heating Curve",
+        "de": "Heizkurve"
+      },
+      "children": [
+        {
+          "id": "heating_curve_endpoint_setting",
+          "type": "number",
+          "label": {
+            "en": "Heating Curve Endpoint (°C)",
+            "de": "Heizkurve Endpunkt (°C)"
+          },
+          "value": 40,
+          "min": 20,
+          "max": 70,
+          "hint": {
+            "en": "Endpoint of the heating curve at maximum design temperature (parameter 11). Defines the target supply temperature at the lowest outdoor temperature. Changing this setting writes the value directly to the controller.",
+            "de": "Endpunkt der Heizkurve bei maximaler Auslegungstemperatur (Parameter 11). Legt die Vorlauf-Solltemperatur bei tiefster Aussentemperatur fest. Änderung wird direkt am Controller gespeichert."
+          }
+        },
+        {
+          "id": "heating_curve_offset_setting",
+          "type": "number",
+          "label": {
+            "en": "Heating Curve Parallel Offset (°C)",
+            "de": "Heizkurve Parallelverschiebung (°C)"
+          },
+          "value": 20,
+          "min": 5,
+          "max": 35,
+          "hint": {
+            "en": "Parallel offset of the heating curve (parameter 12). Shifts the entire curve up or down without changing the slope. Changing this setting writes the value directly to the controller.",
+            "de": "Parallelverschiebung der Heizkurve (Parameter 12). Verschiebt die gesamte Kurve ohne die Steigung zu ändern. Änderung wird direkt am Controller gespeichert."
+          }
+        },
+        {
+          "id": "mk1_curve_endpoint_setting",
+          "type": "number",
+          "label": {
+            "en": "MK1 Curve Endpoint (°C)",
+            "de": "MK1 Kurve Endpunkt (°C)"
+          },
+          "value": 40,
+          "min": 20,
+          "max": 70,
+          "hint": {
+            "en": "Endpoint of the MK1 mixing circuit heating curve (parameter 14). Changing this setting writes the value directly to the controller.",
+            "de": "Endpunkt der Heizkurve für Mischkreis MK1 (Parameter 14). Änderung wird direkt am Controller gespeichert."
+          }
+        },
+        {
+          "id": "mk1_curve_offset_setting",
+          "type": "number",
+          "label": {
+            "en": "MK1 Curve Parallel Offset (°C)",
+            "de": "MK1 Kurve Parallelverschiebung (°C)"
+          },
+          "value": 20,
+          "min": 5,
+          "max": 35,
+          "hint": {
+            "en": "Parallel offset of the MK1 mixing circuit heating curve (parameter 15). Changing this setting writes the value directly to the controller.",
+            "de": "Parallelverschiebung der Heizkurve für Mischkreis MK1 (Parameter 15). Änderung wird direkt am Controller gespeichert."
+          }
+        }
+      ]
+    },
+    {
+      "type": "group",
+      "label": {
+        "en": "Betriebsgrenzen Aussentemperatur / Outdoor Temperature Limits",
+        "de": "Betriebsgrenzen Aussentemperatur"
+      },
+      "children": [
+        {
+          "id": "heating_limit_setting",
+          "type": "number",
+          "label": {
+            "en": "Heating Limit (°C)",
+            "de": "Heizgrenze (°C)"
+          },
+          "value": 15,
+          "min": 5,
+          "max": 30,
+          "hint": {
+            "en": "Outdoor temperature above which heating is switched off (parameter 700). Example: 15 °C → heating active only when outdoor temp < 15 °C. Hot water continues to run. Typical: 15–18 °C (underfloor), 16–20 °C (radiators), 12–15 °C (well-insulated buildings). Changing this setting writes the value directly to the controller.",
+            "de": "Aussentemperatur, oberhalb derer der Heizbetrieb abschaltet (Parameter 700). Beispiel: 15 °C → Heizung aktiv nur wenn Aussentemperatur < 15 °C. Warmwasserbetrieb läuft weiter. Typisch: 15–18 °C (FBH), 16–20 °C (Radiatoren), 12–15 °C (gut gedämmte Gebäude). Änderung wird direkt am Controller gespeichert."
+          }
+        },
+        {
+          "id": "outdoor_temp_max_setting",
+          "type": "number",
+          "label": {
+            "en": "Max. Outdoor Temperature (°C)",
+            "de": "Max. Aussentemperatur (°C)"
+          },
+          "value": 35,
+          "min": 10,
+          "max": 45,
+          "hint": {
+            "en": "Maximum outdoor temperature stored in the controller (parameter 91). Above this value the heat pump switches to a defined operating state (e.g. no heating, cooling release). Changing this setting writes the value directly to the controller.",
+            "de": "Maximale Aussentemperatur am Controller (Parameter 91). Oberhalb dieses Werts wechselt die Wärmepumpe in einen definierten Betriebszustand (z.B. kein Heizen, Kühlfreigabe). Änderung wird direkt am Controller gespeichert."
+          }
+        },
+        {
+          "id": "outdoor_temp_min_setting",
+          "type": "number",
+          "label": {
+            "en": "Min. Outdoor Temperature (°C)",
+            "de": "Min. Aussentemperatur (°C)"
+          },
+          "value": -20,
+          "min": -30,
+          "max": 10,
+          "hint": {
+            "en": "Minimum outdoor temperature stored in the controller (parameter 92). Below this value the heat pump may switch to a defined operating state. Changing this setting writes the value directly to the controller.",
+            "de": "Minimale Aussentemperatur am Controller (Parameter 92). Unterhalb dieses Werts wechselt die Wärmepumpe ggf. in einen definierten Betriebszustand. Änderung wird direkt am Controller gespeichert."
+          }
+        },
+        {
+          "id": "temp_setback_limit_setting",
+          "type": "number",
+          "label": {
+            "en": "Setback Temperature Limit (°C)",
+            "de": "Absenk-Temperaturgrenze (°C)"
+          },
+          "value": -10,
+          "min": -20,
+          "max": 10,
+          "hint": {
+            "en": "Outdoor temperature threshold below which the setback mode is activated (parameter 111). Changing this setting writes the value directly to the controller.",
+            "de": "Aussentemperatur-Schwellwert, unterhalb dessen die Absenkung aktiviert wird (Parameter 111). Änderung wird direkt am Controller gespeichert."
+          }
+        }
+      ]
+    },
+    {
+      "type": "group",
+      "label": {
+        "en": "Heizkreis-Temperaturgrenzen / Heating Circuit Limits",
+        "de": "Heizkreis-Temperaturgrenzen"
+      },
+      "children": [
+        {
+          "id": "return_temp_hysteresis_setting",
+          "type": "number",
+          "label": {
+            "en": "Return Temperature Hysteresis (K)",
+            "de": "Rücklauf-Hysterese (K)"
+          },
+          "value": 3,
+          "min": 0.5,
+          "max": 10,
+          "hint": {
+            "en": "Defines how far the return temperature must drop below the heating-curve setpoint before the heat pump restarts (parameter 88). Only effective if supported by the controller. Larger value = longer run times, fewer starts, better COP. Typical: 2–4 K (underfloor heating), 3–6 K (radiators). Changing this setting writes the value directly to the controller.",
+            "de": "Legt fest, wie weit die Rücklauftemperatur unter den Heizkurven-Sollwert fallen muss, bevor die WP erneut startet (Parameter 88). Nur wirksam wenn vom Controller unterstützt. Grösserer Wert = längere Laufzeiten, weniger Starts, besserer COP. Typisch: 2–4 K (FBH), 3–6 K (Radiatoren). Änderung wird direkt am Controller gespeichert."
+          }
+        },
+        {
+          "id": "supply_temp_limit_setting",
+          "type": "number",
+          "label": {
+            "en": "Supply Temperature Limit (°C)",
+            "de": "Vorlauftemperatur-Grenze (°C)"
+          },
+          "value": 55,
+          "min": 20,
+          "max": 70,
+          "hint": {
+            "en": "Maximum supply temperature limit for the heating circuit (parameter 149). The heat pump will not exceed this value. Changing this setting writes the value directly to the controller.",
+            "de": "Maximale Vorlauftemperatur-Grenze für den Heizkreis (Parameter 149). Die WP überschreitet diesen Wert nicht. Änderung wird direkt am Controller gespeichert."
+          }
+        },
+        {
+          "id": "return_temp_limit_setting",
+          "type": "number",
+          "label": {
+            "en": "Return Temperature Limit (°C)",
+            "de": "Rücklauftemperatur-Grenze (°C)"
+          },
+          "value": 45,
+          "min": 20,
+          "max": 65,
+          "hint": {
+            "en": "Maximum return temperature limit for the heating circuit (parameter 87). Changing this setting writes the value directly to the controller.",
+            "de": "Maximale Rücklauftemperatur-Grenze für den Heizkreis (Parameter 87). Änderung wird direkt am Controller gespeichert."
+          }
+        },
+        {
+          "id": "return_temp_min_setting",
+          "type": "number",
+          "label": {
+            "en": "Return Temperature Min. (°C)",
+            "de": "Rücklauftemperatur Minimum (°C)"
+          },
+          "value": 15,
+          "min": 5,
+          "max": 30,
+          "hint": {
+            "en": "Minimum return temperature target for the heating circuit (parameter 979). Prevents the return temperature from dropping below this value. Changing this setting writes the value directly to the controller.",
+            "de": "Minimale Rücklauftemperatur-Vorgabe für den Heizkreis (Parameter 979). Verhindert, dass die Rücklauftemperatur unter diesen Wert fällt. Änderung wird direkt am Controller gespeichert."
+          }
+        }
+      ]
+    },
+    {
+      "type": "group",
+      "label": {
+        "en": "Absenkung / Setback",
+        "de": "Absenkung"
+      },
+      "children": [
+        {
+          "id": "delta_heating_reduction_setting",
+          "type": "number",
+          "label": {
+            "en": "Heating Setback Delta (K)",
+            "de": "Absenkung Heizung Delta (K)"
+          },
+          "value": -5,
+          "min": -15,
+          "max": 10,
+          "hint": {
+            "en": "Temperature delta applied to the heating curve during setback mode (parameter 13). Negative value lowers the target temperature. Changing this setting writes the value directly to the controller.",
+            "de": "Temperaturdelta für den Absenkbetrieb der Heizung (Parameter 13). Negativer Wert senkt die Solltemperatur ab. Änderung wird direkt am Controller gespeichert."
+          }
+        },
+        {
+          "id": "delta_mk1_reduction_setting",
+          "type": "number",
+          "label": {
+            "en": "MK1 Setback Delta (K)",
+            "de": "Absenkung MK1 Delta (K)"
+          },
+          "value": -5,
+          "min": -15,
+          "max": 10,
+          "hint": {
+            "en": "Temperature delta applied to the MK1 mixing circuit during setback mode (parameter 16). Negative value lowers the target temperature. Changing this setting writes the value directly to the controller.",
+            "de": "Temperaturdelta für den Absenkbetrieb von Mischkreis MK1 (Parameter 16). Negativer Wert senkt die Solltemperatur ab. Änderung wird direkt am Controller gespeichert."
+          }
+        }
+      ]
+    },
+    {
+      "type": "group",
+      "label": {
+        "en": "Warmwasser / Hot Water",
+        "de": "Warmwasser"
+      },
+      "children": [
+        {
+          "id": "tdi_setpoint_setting",
+          "type": "number",
+          "label": {
+            "en": "Thermal Disinfection Setpoint (°C)",
+            "de": "Thermische Desinfektion Soll (°C)"
+          },
+          "value": 65,
+          "min": 50,
+          "max": 80,
+          "hint": {
+            "en": "Target temperature for thermal disinfection (parameter 47). The continuous disinfection mode auto-stops when the hot water temperature reaches this value minus 1 °C. Changing this setting writes the value directly to the controller.",
+            "de": "Zieltemperatur für die Thermische Desinfektion (Parameter 47). Der Dauerbetrieb stoppt automatisch, wenn die Warmwassertemperatur diesen Wert minus 1 °C erreicht. Änderung wird direkt am Controller gespeichert."
+          }
+        },
+        {
+          "id": "hotwater_hysteresis_setting",
+          "type": "number",
+          "label": {
+            "en": "Hot Water Hysteresis (K)",
+            "de": "Warmwasser-Hysterese (K)"
+          },
+          "value": 5,
+          "min": 0.5,
+          "max": 10,
+          "hint": {
+            "en": "Defines how far the hot water temperature must drop below the setpoint before reheating starts (parameter 74). Example: setpoint 50 °C, hysteresis 5 K → reheating at 45 °C. Larger value = fewer compressor starts. Changing this setting writes the value directly to the controller.",
+            "de": "Legt fest, wie weit die Warmwassertemperatur unter den Sollwert fallen muss, bevor die Nachheizung startet (Parameter 74). Beispiel: Sollwert 50 °C, Hysterese 5 K → Nachheizung bei 45 °C. Grösserer Wert = weniger Verdichterstarts. Änderung wird direkt am Controller gespeichert."
+          }
+        }
+      ]
+    },
+    {
+      "type": "group",
+      "label": {
+        "en": "Zuheizer / 2. Verdichter",
+        "de": "Zuheizer / 2. Verdichter"
+      },
+      "children": [
+        {
+          "id": "temp_zwe_enable_setting",
+          "type": "number",
+          "label": {
+            "en": "ZWE Enable Temperature (°C)",
+            "de": "ZWE Freigabe-Temperatur (°C)"
+          },
+          "value": -5,
+          "min": -20,
+          "max": 20,
+          "hint": {
+            "en": "Outdoor temperature below which the auxiliary heater (ZWE) is enabled (parameter 90). Changing this setting writes the value directly to the controller.",
+            "de": "Aussentemperatur, unterhalb derer der Zuheizer (ZWE) freigegeben wird (Parameter 90). Änderung wird direkt am Controller gespeichert."
+          }
+        },
+        {
+          "id": "temp_2nd_comp_heating_setting",
+          "type": "number",
+          "label": {
+            "en": "2nd Compressor Heating Temp. (°C)",
+            "de": "2. Verdichter Aussentemp. Heizen (°C)"
+          },
+          "value": -10,
+          "min": -20,
+          "max": 30,
+          "hint": {
+            "en": "Outdoor temperature below which the 2nd compressor is activated for heating (parameter 95). Changing this setting writes the value directly to the controller.",
+            "de": "Aussentemperatur, unterhalb derer der 2. Verdichter für den Heizbetrieb zugeschaltet wird (Parameter 95). Änderung wird direkt am Controller gespeichert."
+          }
+        },
+        {
+          "id": "temp_2nd_comp_hotwater_setting",
+          "type": "number",
+          "label": {
+            "en": "2nd Compressor Hot Water Temp. (°C)",
+            "de": "2. Verdichter Vorlauftemp. Warmwasser (°C)"
+          },
+          "value": 60,
+          "min": 10,
+          "max": 70,
+          "hint": {
+            "en": "Supply temperature threshold for activating the 2nd compressor during hot water preparation (parameter 96). Changing this setting writes the value directly to the controller.",
+            "de": "Vorlauftemperatur-Schwellwert für die Zuschaltung des 2. Verdichters bei der Warmwasserbereitung (Parameter 96). Änderung wird direkt am Controller gespeichert."
+          }
+        }
+      ]
+    },
+    {
+      "type": "group",
+      "label": {
+        "en": "Kühlung / Cooling",
+        "de": "Kühlung"
+      },
+      "children": [
+        {
+          "id": "cooling_release_temp_setting",
+          "type": "number",
+          "label": {
+            "en": "Cooling Release Temperature (°C)",
+            "de": "Kühlung Freigabe-Temperatur (°C)"
+          },
+          "value": 22,
+          "min": 10,
+          "max": 40,
+          "hint": {
+            "en": "Outdoor temperature above which cooling is released (parameter 110). Only relevant if the controller supports cooling. Changing this setting writes the value directly to the controller.",
+            "de": "Aussentemperatur, oberhalb derer die Kühlung freigegeben wird (Parameter 110). Nur relevant wenn der Controller Kühlung unterstützt. Änderung wird direkt am Controller gespeichert."
+          }
+        },
+        {
+          "id": "cooling_inlet_temp_setting",
+          "type": "number",
+          "label": {
+            "en": "Cooling Inlet Temperature (°C)",
+            "de": "Kühlung Einlauftemperatur (°C)"
+          },
+          "value": 18,
+          "min": 5,
+          "max": 30,
+          "hint": {
+            "en": "Target inlet temperature for the cooling circuit (parameter 132). Changing this setting writes the value directly to the controller.",
+            "de": "Ziel-Einlauftemperatur für den Kühlkreis (Parameter 132). Änderung wird direkt am Controller gespeichert."
           }
         }
       ]

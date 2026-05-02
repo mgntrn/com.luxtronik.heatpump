@@ -152,7 +152,7 @@ class LuxtronikHeatpumpDevice extends Device {
       }
     }
     // ── Neue Capabilities hinzufügen falls noch nicht vorhanden ─────────────────
-    const NEW_CAPABILITIES = ['hotwater_boost', 'firmware_version', 'thermal_disinfection_continuous', 'hotwater_boost_party', 'target_temperature', 'measure_temperature', 'heating_state_string', 'hotwater_state_string', 'target_temperature.heating', 'measure_temperature.heating', 'last_poll', 'target_temperature.tdi'];
+    const NEW_CAPABILITIES = ['hotwater_boost', 'firmware_version', 'thermal_disinfection_continuous', 'hotwater_boost_party', 'target_temperature', 'measure_temperature', 'heating_state_string', 'hotwater_state_string', 'target_temperature.heating', 'measure_temperature.heating', 'last_poll', 'tdi_target_temperature', 'hotwater_hysteresis', 'return_temp_hysteresis', 'heating_limit', 'outdoor_temp_max', 'heating_curve_endpoint', 'heating_curve_offset', 'mk1_curve_endpoint', 'mk1_curve_offset', 'outdoor_temp_min', 'temp_setback_limit', 'supply_temp_limit', 'return_temp_limit', 'return_temp_min', 'delta_heating_reduction', 'delta_mk1_reduction', 'temp_zwe_enable', 'temp_2nd_comp_heating', 'temp_2nd_comp_hotwater', 'cooling_release_temp_cap', 'cooling_inlet_temp_cap'];
     for (const cap of NEW_CAPABILITIES) {
       if (!this.hasCapability(cap)) {
         this.log(`Füge neue Capability hinzu: ${cap}`);
@@ -161,7 +161,7 @@ class LuxtronikHeatpumpDevice extends Device {
       }
     }
     // ── Cleanup: unerwünschte Capabilities entfernen ────────────────────────────
-    const REMOVE_CAPABILITIES = ['thermal_disinfection', 'warmwater_target_temperature', 'heating_temperature_correction', 'measure_temp_flow'];
+    const REMOVE_CAPABILITIES = ['thermal_disinfection', 'warmwater_target_temperature', 'heating_temperature_correction', 'measure_temp_flow', 'target_temperature.tdi'];
     for (const cap of REMOVE_CAPABILITIES) {
       if (this.hasCapability(cap)) {
         this.log(`Entferne Capability: ${cap}`);
@@ -197,6 +197,11 @@ class LuxtronikHeatpumpDevice extends Device {
     this._lastErrorState    = false;
     // Timestamp map: nach einem Write diese Capability für 2 Polls nicht überschreiben
     this._writeProtectUntil = {};
+    // Erst nach dem ersten erfolgreichen Poll dürfen Einstellungen an den Controller
+    // geschrieben werden — verhindert dass Default-Werte (aus driver.compose.json)
+    // oder Stale-Values aus der vorherigen Session den Controller überschreiben,
+    // bevor die echten Werte gelesen wurden.
+    this._firstPollDone = false;
     // Schnelladungs-Timer
     this._boostTimer      = null;
     this._boostPartyTimer = null;
@@ -309,6 +314,18 @@ class LuxtronikHeatpumpDevice extends Device {
     this.homey.flow.getActionCard('disable_thermal_disinfection')
       .registerRunListener(async () => this._setThermalDisinfectionContinuous(false));
 
+    this.homey.flow.getActionCard('set_outdoor_temp_max')
+      .registerRunListener(async (args) => this._setOutdoorTempMax(parseFloat(args.value)));
+
+    this.homey.flow.getActionCard('set_heating_limit')
+      .registerRunListener(async (args) => this._setHeatingLimit(parseFloat(args.value)));
+
+    this.homey.flow.getActionCard('set_return_temp_hysteresis')
+      .registerRunListener(async (args) => this._setReturnTempHysteresis(parseFloat(args.value)));
+
+    this.homey.flow.getActionCard('set_hotwater_hysteresis')
+      .registerRunListener(async (args) => this._setHotwaterHysteresis(parseFloat(args.value)));
+
     // Capability-Listener (UI)
     this.registerCapabilityListener('heating_operation_mode',        async (v) => this._setHeatingOperationMode(parseInt(v, 10)));
     this.registerCapabilityListener('warmwater_operation_mode',       async (v) => this._setWarmwaterOperationMode(parseInt(v, 10)));
@@ -316,7 +333,6 @@ class LuxtronikHeatpumpDevice extends Device {
     if (this.hasCapability('heating_temperature_correction')) this.registerCapabilityListener('heating_temperature_correction', async (v) => this._setHeatingTemperatureCorrection(parseFloat(v)));
     this.registerCapabilityListener('target_temperature',               async (v) => this._setWarmwaterTargetTemperature(parseFloat(v)));
     this.registerCapabilityListener('target_temperature.heating',      async (v) => this._setHeatingTemperatureCorrection(parseFloat(v)));
-    this.registerCapabilityListener('target_temperature.tdi',          async (v) => this._setTdiTargetTemperature(parseFloat(v)));
     if (this.hasCapability('warmwater_target_temperature')) this.registerCapabilityListener('warmwater_target_temperature',   async (v) => this._setWarmwaterTargetTemperature(parseFloat(v)));
     this.registerCapabilityListener('hotwater_boost_party',             async (v) => {
       const s = await this.getSettings();
@@ -342,6 +358,7 @@ class LuxtronikHeatpumpDevice extends Device {
 
     this._connectPump();
     await this._doPoll();
+    this._firstPollDone = true;  // Ab jetzt dürfen onSettings-Handler schreiben
     this._startPolling();
   }
 
@@ -353,11 +370,207 @@ class LuxtronikHeatpumpDevice extends Device {
     if (this._pollTimeout)     { clearTimeout(this._pollTimeout);     this._pollTimeout     = null; }
   }
 
-  async onSettings({ newSettings }) {
+  async onSettings({ newSettings, changedKeys }) {
     this._stopPolling();
     this._ip           = newSettings.ip;
     this._port         = Number(newSettings.port) || 8889;
     this._pollInterval = (Number(newSettings.poll_interval) || 60) * 1000;
+
+    // Hilfsfunktion: Einstellung nur schreiben wenn:
+    // 1. Der erste Poll bereits abgeschlossen ist (echte Werte von der WP gelesen)
+    // 2. Die Capability bereits einen Wert hat (kein Null-/Default-Zustand)
+    // Verhindert dass Default-Werte oder Stale-Values aus der vorherigen Session
+    // den Controller überschreiben bevor die echten Werte geladen wurden.
+    const _shouldWrite = (capabilityId) => this._firstPollDone && this.getCapabilityValue(capabilityId) !== null;
+
+    // TDI-Solltemperatur: direkt schreiben wenn Einstellung geändert wurde
+    if (changedKeys.includes('tdi_setpoint_setting') && _shouldWrite('tdi_target_temperature')) {
+      const val = parseFloat(newSettings.tdi_setpoint_setting);
+      if (val >= 50 && val <= 80) {
+        this._connectPump();
+        await this._setTdiTargetTemperature(val).catch((e) => this.error('TDI-Solltemperatur Schreiben fehlgeschlagen:', e.message));
+      }
+    }
+
+    // Max. Aussentemperatur: direkt schreiben wenn Einstellung geändert wurde
+    if (changedKeys.includes('outdoor_temp_max_setting') && _shouldWrite('outdoor_temp_max')) {
+      const val = parseFloat(newSettings.outdoor_temp_max_setting);
+      if (val >= 10 && val <= 45) {
+        this._connectPump();
+        await this._setOutdoorTempMax(val).catch((e) => this.error('Max. Aussentemperatur Schreiben fehlgeschlagen:', e.message));
+      }
+    }
+
+    // Heizgrenze: direkt schreiben wenn Einstellung geändert wurde
+    if (changedKeys.includes('heating_limit_setting') && _shouldWrite('heating_limit')) {
+      const val = parseFloat(newSettings.heating_limit_setting);
+      if (val >= 5 && val <= 30) {
+        this._connectPump();
+        await this._setHeatingLimit(val).catch((e) => this.error('Heizgrenze Schreiben fehlgeschlagen:', e.message));
+      }
+    }
+
+    // Warmwasser-Hysterese: direkt schreiben wenn Einstellung geändert wurde
+    if (changedKeys.includes('hotwater_hysteresis_setting') && _shouldWrite('hotwater_hysteresis')) {
+      const val = parseFloat(newSettings.hotwater_hysteresis_setting);
+      if (val >= 0.5 && val <= 10) {
+        this._connectPump();
+        await this._setHotwaterHysteresis(val).catch((e) => this.error('Warmwasser-Hysterese Schreiben fehlgeschlagen:', e.message));
+      }
+    }
+
+    // Rücklauf-Hysterese: direkt schreiben wenn Einstellung geändert wurde
+    if (changedKeys.includes('return_temp_hysteresis_setting') && _shouldWrite('return_temp_hysteresis')) {
+      const val = parseFloat(newSettings.return_temp_hysteresis_setting);
+      if (val >= 0.5 && val <= 10) {
+        this._connectPump();
+        await this._setReturnTempHysteresis(val).catch((e) => this.error('Rücklauf-Hysterese Schreiben fehlgeschlagen:', e.message));
+      }
+    }
+
+    // Heizkurve Endpunkt: direkt schreiben wenn Einstellung geändert wurde
+    if (changedKeys.includes('heating_curve_endpoint_setting') && _shouldWrite('heating_curve_endpoint')) {
+      const val = parseFloat(newSettings.heating_curve_endpoint_setting);
+      if (val >= 20 && val <= 70) {
+        this._connectPump();
+        await this._setHeatingCurveEndpoint(val).catch((e) => this.error('Heizkurve Endpunkt Schreiben fehlgeschlagen:', e.message));
+      }
+    }
+
+    // Heizkurve Parallelverschiebung: direkt schreiben wenn Einstellung geändert wurde
+    if (changedKeys.includes('heating_curve_offset_setting') && _shouldWrite('heating_curve_offset')) {
+      const val = parseFloat(newSettings.heating_curve_offset_setting);
+      if (val >= 5 && val <= 35) {
+        this._connectPump();
+        await this._setHeatingCurveOffset(val).catch((e) => this.error('Heizkurve Parallelverschiebung Schreiben fehlgeschlagen:', e.message));
+      }
+    }
+
+    // MK1 Kurve Endpunkt: direkt schreiben wenn Einstellung geändert wurde
+    if (changedKeys.includes('mk1_curve_endpoint_setting') && _shouldWrite('mk1_curve_endpoint')) {
+      const val = parseFloat(newSettings.mk1_curve_endpoint_setting);
+      if (val >= 20 && val <= 70) {
+        this._connectPump();
+        await this._setMk1CurveEndpoint(val).catch((e) => this.error('MK1 Kurve Endpunkt Schreiben fehlgeschlagen:', e.message));
+      }
+    }
+
+    // MK1 Kurve Parallelverschiebung: direkt schreiben wenn Einstellung geändert wurde
+    if (changedKeys.includes('mk1_curve_offset_setting') && _shouldWrite('mk1_curve_offset')) {
+      const val = parseFloat(newSettings.mk1_curve_offset_setting);
+      if (val >= 5 && val <= 35) {
+        this._connectPump();
+        await this._setMk1CurveOffset(val).catch((e) => this.error('MK1 Kurve Parallelverschiebung Schreiben fehlgeschlagen:', e.message));
+      }
+    }
+
+    // Min. Aussentemperatur: direkt schreiben wenn Einstellung geändert wurde
+    if (changedKeys.includes('outdoor_temp_min_setting') && _shouldWrite('outdoor_temp_min')) {
+      const val = parseFloat(newSettings.outdoor_temp_min_setting);
+      if (val >= -30 && val <= 10) {
+        this._connectPump();
+        await this._setOutdoorTempMin(val).catch((e) => this.error('Min. Aussentemperatur Schreiben fehlgeschlagen:', e.message));
+      }
+    }
+
+    // Absenk-Temperaturgrenze: direkt schreiben wenn Einstellung geändert wurde
+    if (changedKeys.includes('temp_setback_limit_setting') && _shouldWrite('temp_setback_limit')) {
+      const val = parseFloat(newSettings.temp_setback_limit_setting);
+      if (val >= -20 && val <= 10) {
+        this._connectPump();
+        await this._setTempSetbackLimit(val).catch((e) => this.error('Absenk-Temperaturgrenze Schreiben fehlgeschlagen:', e.message));
+      }
+    }
+
+    // Vorlauftemperatur-Grenze: direkt schreiben wenn Einstellung geändert wurde
+    if (changedKeys.includes('supply_temp_limit_setting') && _shouldWrite('supply_temp_limit')) {
+      const val = parseFloat(newSettings.supply_temp_limit_setting);
+      if (val >= 20 && val <= 70) {
+        this._connectPump();
+        await this._setSupplyTempLimit(val).catch((e) => this.error('Vorlauftemperatur-Grenze Schreiben fehlgeschlagen:', e.message));
+      }
+    }
+
+    // Rücklauftemperatur-Grenze: direkt schreiben wenn Einstellung geändert wurde
+    if (changedKeys.includes('return_temp_limit_setting') && _shouldWrite('return_temp_limit')) {
+      const val = parseFloat(newSettings.return_temp_limit_setting);
+      if (val >= 20 && val <= 65) {
+        this._connectPump();
+        await this._setReturnTempLimit(val).catch((e) => this.error('Rücklauftemperatur-Grenze Schreiben fehlgeschlagen:', e.message));
+      }
+    }
+
+    // Rücklauftemperatur Minimum: direkt schreiben wenn Einstellung geändert wurde
+    if (changedKeys.includes('return_temp_min_setting') && _shouldWrite('return_temp_min')) {
+      const val = parseFloat(newSettings.return_temp_min_setting);
+      if (val >= 5 && val <= 30) {
+        this._connectPump();
+        await this._setReturnTempMin(val).catch((e) => this.error('Rücklauftemperatur Minimum Schreiben fehlgeschlagen:', e.message));
+      }
+    }
+
+    // Absenkung Heizung Delta: direkt schreiben wenn Einstellung geändert wurde
+    if (changedKeys.includes('delta_heating_reduction_setting') && _shouldWrite('delta_heating_reduction')) {
+      const val = parseFloat(newSettings.delta_heating_reduction_setting);
+      if (val >= -15 && val <= 10) {
+        this._connectPump();
+        await this._setDeltaHeatingReduction(val).catch((e) => this.error('Absenkung Heizung Delta Schreiben fehlgeschlagen:', e.message));
+      }
+    }
+
+    // Absenkung MK1 Delta: direkt schreiben wenn Einstellung geändert wurde
+    if (changedKeys.includes('delta_mk1_reduction_setting') && _shouldWrite('delta_mk1_reduction')) {
+      const val = parseFloat(newSettings.delta_mk1_reduction_setting);
+      if (val >= -15 && val <= 10) {
+        this._connectPump();
+        await this._setDeltaMk1Reduction(val).catch((e) => this.error('Absenkung MK1 Delta Schreiben fehlgeschlagen:', e.message));
+      }
+    }
+
+    // ZWE Freigabe-Temperatur: direkt schreiben wenn Einstellung geändert wurde
+    if (changedKeys.includes('temp_zwe_enable_setting') && _shouldWrite('temp_zwe_enable')) {
+      const val = parseFloat(newSettings.temp_zwe_enable_setting);
+      if (val >= -20 && val <= 20) {
+        this._connectPump();
+        await this._setTempZweEnable(val).catch((e) => this.error('ZWE Freigabe-Temperatur Schreiben fehlgeschlagen:', e.message));
+      }
+    }
+
+    // 2. Verdichter Aussentemp. Heizen: direkt schreiben wenn Einstellung geändert wurde
+    if (changedKeys.includes('temp_2nd_comp_heating_setting') && _shouldWrite('temp_2nd_comp_heating')) {
+      const val = parseFloat(newSettings.temp_2nd_comp_heating_setting);
+      if (val >= -20 && val <= 30) {
+        this._connectPump();
+        await this._setTemp2ndCompHeating(val).catch((e) => this.error('2. Verdichter Aussentemp. Heizen Schreiben fehlgeschlagen:', e.message));
+      }
+    }
+
+    // 2. Verdichter Vorlauftemp. Warmwasser: direkt schreiben wenn Einstellung geändert wurde
+    if (changedKeys.includes('temp_2nd_comp_hotwater_setting') && _shouldWrite('temp_2nd_comp_hotwater')) {
+      const val = parseFloat(newSettings.temp_2nd_comp_hotwater_setting);
+      if (val >= 10 && val <= 70) {
+        this._connectPump();
+        await this._setTemp2ndCompHotwater(val).catch((e) => this.error('2. Verdichter Vorlauftemp. Warmwasser Schreiben fehlgeschlagen:', e.message));
+      }
+    }
+
+    // Kühlung Freigabe-Temperatur: direkt schreiben wenn Einstellung geändert wurde
+    if (changedKeys.includes('cooling_release_temp_setting') && _shouldWrite('cooling_release_temp_cap')) {
+      const val = parseFloat(newSettings.cooling_release_temp_setting);
+      if (val >= 10 && val <= 40) {
+        this._connectPump();
+        await this._setCoolingReleaseTemp(val).catch((e) => this.error('Kühlung Freigabe-Temperatur Schreiben fehlgeschlagen:', e.message));
+      }
+    }
+
+    // Kühlung Einlauftemperatur: direkt schreiben wenn Einstellung geändert wurde
+    if (changedKeys.includes('cooling_inlet_temp_setting') && _shouldWrite('cooling_inlet_temp_cap')) {
+      const val = parseFloat(newSettings.cooling_inlet_temp_setting);
+      if (val >= 5 && val <= 30) {
+        this._connectPump();
+        await this._setCoolingInletTemp(val).catch((e) => this.error('Kühlung Einlauftemperatur Schreiben fehlgeschlagen:', e.message));
+      }
+    }
 
     // Leistungssensor sofort aktualisieren ohne auf den nächsten Poll zu warten
     // _lastState enthält den zuletzt bekannten Status der WP
@@ -465,7 +678,14 @@ class LuxtronikHeatpumpDevice extends Device {
         const tz = this.homey.clock.getTimezone();
         const timeStr = this._lastSuccessfulPoll.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: tz, hour12: false });
         this._setIfValid('last_poll', timeStr).catch(() => {});
-        this._processData(data).then(resolve).catch((e) => {
+        this._processData(data).then(() => {
+          // Erstes erfolgreiches Lesen: ab jetzt dürfen onSettings-Handler schreiben
+          if (!this._firstPollDone) {
+            this._firstPollDone = true;
+            this.log('Erster Poll abgeschlossen — onSettings-Schreibsperre aufgehoben');
+          }
+          resolve();
+        }).catch((e) => {
           this.error('Fehler bei Datenverarbeitung:', e.message);
           resolve();
         });
@@ -541,7 +761,7 @@ class LuxtronikHeatpumpDevice extends Device {
     // Thermische Desinfektion: automatisch deaktivieren wenn Zieltemperatur erreicht
     if (this.getCapabilityValue('thermal_disinfection_continuous') === true) {
       const currentTemp = this._n(v.temperature_hot_water);
-      const tdiTarget   = (this.getCapabilityValue('target_temperature.tdi') ?? 65) - 1;
+      const tdiTarget   = (this.getCapabilityValue('tdi_target_temperature') ?? 65) - 1;
       if (currentTemp !== null && currentTemp >= tdiTarget) {
         this.log(`Thermische Desinfektion: ${tdiTarget}°C erreicht (${currentTemp}°C) — deaktiviere Dauerbetrieb`);
         await this._setThermalDisinfectionContinuous(false).catch((e) => this.error('TDI auto-off fehlgeschlagen:', e.message));
@@ -754,7 +974,96 @@ class LuxtronikHeatpumpDevice extends Device {
     await this._setIfValid('target_temperature', this._n(wwTarget));
 
     // Thermische Desinfektion Soll (TDI): parameter 47 = temperature_hot_water_limit
-    await this._setIfValid('target_temperature.tdi', this._n(p.temperature_hot_water_limit));
+    const tdiVal = this._n(p.temperature_hot_water_limit);
+    await this._setIfValid('tdi_target_temperature', tdiVal);
+    await this._syncSetting('tdi_target_temperature', 'tdi_setpoint_setting', tdiVal);
+
+    // Heizgrenze: parameter 700 = thresholdHeatingLimit (raw / 10)
+    const heatingLimitVal = this._n(p.thresholdHeatingLimit);
+    await this._setIfValid('heating_limit', heatingLimitVal);
+    await this._syncSetting('heating_limit', 'heating_limit_setting', heatingLimitVal);
+
+    // Max. Aussentemperatur: parameter 91 = temperature_outdoor_max (raw / 10)
+    const outdoorTempMaxVal = this._n(p.temperature_outdoor_max);
+    await this._setIfValid('outdoor_temp_max', outdoorTempMaxVal);
+    await this._syncSetting('outdoor_temp_max', 'outdoor_temp_max_setting', outdoorTempMaxVal);
+
+    // Warmwasser-Hysterese: parameter 74 = hotWaterTemperatureHysteresis (raw / 10)
+    const hotwaterHystVal = this._n(p.hotWaterTemperatureHysteresis);
+    await this._setIfValid('hotwater_hysteresis', hotwaterHystVal);
+    await this._syncSetting('hotwater_hysteresis', 'hotwater_hysteresis_setting', hotwaterHystVal);
+
+    // Rücklauf-Hysterese: parameter 88 = returnTemperatureHysteresis (raw / 10)
+    // Nur vorhanden wenn heatpumpVisibility[93] === 1, sonst 'no'
+    const returnHyst = p.returnTemperatureHysteresis;
+    const returnHystVal = this._n(returnHyst);
+    await this._setCapabilityConditional(
+      'return_temp_hysteresis',
+      returnHystVal,
+      returnHyst !== undefined && returnHyst !== 'no' && returnHystVal !== null,
+    );
+    await this._syncSetting('return_temp_hysteresis', 'return_temp_hysteresis_setting', returnHystVal);
+
+    // ── Heizkurve (bedingt: sichtbar wenn heatpumpVisibility[207] === 1) ────────
+    // p.heating_curve_end_point gibt 'no' zurück wenn Parameter nicht verfügbar ist
+    const hcEndpoint = this._n(p.heating_curve_end_point);
+    await this._setCapabilityConditional('heating_curve_endpoint', hcEndpoint, hcEndpoint !== null);
+    await this._syncSetting('heating_curve_endpoint', 'heating_curve_endpoint_setting', hcEndpoint);
+    const hcOffset = this._n(p.heating_curve_parallel_offset);
+    await this._setCapabilityConditional('heating_curve_offset', hcOffset, hcOffset !== null);
+    await this._syncSetting('heating_curve_offset', 'heating_curve_offset_setting', hcOffset);
+    const mk1Endpoint = this._n(p.mk1_curve_end_point);
+    await this._setCapabilityConditional('mk1_curve_endpoint', mk1Endpoint, mk1Endpoint !== null);
+    await this._syncSetting('mk1_curve_endpoint', 'mk1_curve_endpoint_setting', mk1Endpoint);
+    const mk1Offset = this._n(p.mk1_curve_parallel_offset);
+    await this._setCapabilityConditional('mk1_curve_offset', mk1Offset, mk1Offset !== null);
+    await this._syncSetting('mk1_curve_offset', 'mk1_curve_offset_setting', mk1Offset);
+
+    // ── Betriebsgrenzen Aussentemperatur ─────────────────────────────────────────
+    const outdoorTempMinVal = this._n(p.temperature_outdoor_min);
+    await this._setIfValid('outdoor_temp_min', outdoorTempMinVal);
+    await this._syncSetting('outdoor_temp_min', 'outdoor_temp_min_setting', outdoorTempMinVal);
+    const tempSetbackVal = this._n(p.thresholdTemperatureSetBack);
+    await this._setIfValid('temp_setback_limit', tempSetbackVal);
+    await this._syncSetting('temp_setback_limit', 'temp_setback_limit_setting', tempSetbackVal);
+
+    // ── Heizkreis-Temperaturgrenzen ───────────────────────────────────────────────
+    const supplyLimitVal = this._n(p.temperature_supply_limit);
+    await this._setIfValid('supply_temp_limit', supplyLimitVal);
+    await this._syncSetting('supply_temp_limit', 'supply_temp_limit_setting', supplyLimitVal);
+    const returnLimitVal = this._n(p.temperature_return_limit);
+    await this._setIfValid('return_temp_limit', returnLimitVal);
+    await this._syncSetting('return_temp_limit', 'return_temp_limit_setting', returnLimitVal);
+    const returnMinVal = this._n(p.returnTemperatureTargetMin);
+    await this._setIfValid('return_temp_min', returnMinVal);
+    await this._syncSetting('return_temp_min', 'return_temp_min_setting', returnMinVal);
+
+    // ── Absenkung ─────────────────────────────────────────────────────────────────
+    const deltaHeatingVal = this._n(p.deltaHeatingReduction);
+    await this._setIfValid('delta_heating_reduction', deltaHeatingVal);
+    await this._syncSetting('delta_heating_reduction', 'delta_heating_reduction_setting', deltaHeatingVal);
+    const deltaMk1Val = this._n(p.deltaMk1Reduction);
+    await this._setIfValid('delta_mk1_reduction', deltaMk1Val);
+    await this._syncSetting('delta_mk1_reduction', 'delta_mk1_reduction_setting', deltaMk1Val);
+
+    // ── Zuheizer / 2. Verdichter ──────────────────────────────────────────────────
+    const tempZweVal = this._n(p.temperature_ZWE_possible);
+    await this._setIfValid('temp_zwe_enable', tempZweVal);
+    await this._syncSetting('temp_zwe_enable', 'temp_zwe_enable_setting', tempZweVal);
+    const temp2ndHeatVal = this._n(p.heatingTemperatureOutside2ndCompressor);
+    await this._setIfValid('temp_2nd_comp_heating', temp2ndHeatVal);
+    await this._syncSetting('temp_2nd_comp_heating', 'temp_2nd_comp_heating_setting', temp2ndHeatVal);
+    const temp2ndHwVal = this._n(p.hotwaterTemperatureForerun2ndCompressor);
+    await this._setIfValid('temp_2nd_comp_hotwater', temp2ndHwVal);
+    await this._syncSetting('temp_2nd_comp_hotwater', 'temp_2nd_comp_hotwater_setting', temp2ndHwVal);
+
+    // ── Kühlung Temperaturen (nur wenn Kühlung freigegeben) ───────────────────────
+    const coolingRelVal = this._n(p.cooling_release_temperature);
+    await this._setCapabilityConditional('cooling_release_temp_cap', coolingRelVal, coolingEnabled);
+    if (coolingEnabled) await this._syncSetting('cooling_release_temp_cap', 'cooling_release_temp_setting', coolingRelVal);
+    const coolingInletVal = this._n(p.cooling_inlet_temp);
+    await this._setCapabilityConditional('cooling_inlet_temp_cap', coolingInletVal, coolingEnabled);
+    if (coolingEnabled) await this._syncSetting('cooling_inlet_temp_cap', 'cooling_inlet_temp_setting', coolingInletVal);
   }
 
   // ─── Setzer ────────────────────────────────────────────────────────────────
@@ -805,13 +1114,180 @@ class LuxtronikHeatpumpDevice extends Device {
   }
 
   async _setTdiTargetTemperature(value) {
-    // parameter 47 = temperature_hot_water_limit; kein Named-Write in luxtronik2 → _startWrite direkt
+    // parameter 47 = temperature_hot_water_limit; kein Named-Write in luxtronik2 → _writeRaw
     const clamped = Math.min(80, Math.max(50, Math.round(value * 2) / 2));
     this.log(`Setze TDI-Solltemperatur: ${clamped} °C (parameter 47)`);
-    await this.setCapabilityValue('target_temperature.tdi', clamped).catch(() => {});
-    this._setWriteProtect('target_temperature.tdi', 120000);
+    this._setWriteProtect('tdi_target_temperature', 120000);
     await this._writeRaw(47, Math.round(clamped * 10));
     this.log(`TDI-Solltemperatur erfolgreich gesendet: ${clamped} °C`);
+  }
+
+  async _setHotwaterHysteresis(value) {
+    const clamped = Math.min(10, Math.max(0.5, Math.round(value * 2) / 2));
+    this.log(`Setze Warmwasser-Hysterese: ${clamped} K`);
+    this._setWriteProtect('hotwater_hysteresis', 120000);
+    await this._write('hotwater_temperature_hysteresis', clamped);
+    this.log(`Warmwasser-Hysterese erfolgreich gesendet: ${clamped} K`);
+  }
+
+  async _setReturnTempHysteresis(value) {
+    const clamped = Math.min(10, Math.max(0.5, Math.round(value * 2) / 2));
+    this.log(`Setze Rücklauf-Hysterese: ${clamped} K`);
+    this._setWriteProtect('return_temp_hysteresis', 120000);
+    await this._write('return_temperature_hysteresis', clamped);
+    this.log(`Rücklauf-Hysterese erfolgreich gesendet: ${clamped} K`);
+  }
+
+  async _setHeatingLimit(value) {
+    // parameter 700 = thresholdHeatingLimit; kein Named-Write → _writeRaw
+    const clamped = Math.min(30, Math.max(5, Math.round(value * 2) / 2));
+    this.log(`Setze Heizgrenze: ${clamped} °C (parameter 700)`);
+    this._setWriteProtect('heating_limit', 120000);
+    await this._writeRaw(700, Math.round(clamped * 10));
+    this.log(`Heizgrenze erfolgreich gesendet: ${clamped} °C`);
+  }
+
+  async _setOutdoorTempMax(value) {
+    // parameter 91 = temperature_outdoor_max; kein Named-Write → _writeRaw
+    const clamped = Math.min(45, Math.max(10, Math.round(value * 2) / 2));
+    this.log(`Setze Max. Aussentemperatur: ${clamped} °C (parameter 91)`);
+    this._setWriteProtect('outdoor_temp_max', 120000);
+    await this._writeRaw(91, Math.round(clamped * 10));
+    this.log(`Max. Aussentemperatur erfolgreich gesendet: ${clamped} °C`);
+  }
+
+  async _setHeatingCurveEndpoint(value) {
+    const clamped = Math.min(70, Math.max(20, Math.round(value * 2) / 2));
+    this.log(`Setze Heizkurve Endpunkt: ${clamped} °C (parameter 11)`);
+    this._setWriteProtect('heating_curve_endpoint', 120000);
+    await this._write('heating_curve_end_point', clamped);
+    this.log(`Heizkurve Endpunkt erfolgreich gesendet: ${clamped} °C`);
+  }
+
+  async _setHeatingCurveOffset(value) {
+    const clamped = Math.min(35, Math.max(5, Math.round(value * 2) / 2));
+    this.log(`Setze Heizkurve Parallelverschiebung: ${clamped} °C (parameter 12)`);
+    this._setWriteProtect('heating_curve_offset', 120000);
+    await this._write('heating_curve_parallel_offset', clamped);
+    this.log(`Heizkurve Parallelverschiebung erfolgreich gesendet: ${clamped} °C`);
+  }
+
+  async _setMk1CurveEndpoint(value) {
+    const clamped = Math.min(70, Math.max(20, Math.round(value * 2) / 2));
+    this.log(`Setze MK1 Kurve Endpunkt: ${clamped} °C (parameter 14)`);
+    this._setWriteProtect('mk1_curve_endpoint', 120000);
+    await this._write('mk1_curve_end_point', clamped);
+    this.log(`MK1 Kurve Endpunkt erfolgreich gesendet: ${clamped} °C`);
+  }
+
+  async _setMk1CurveOffset(value) {
+    const clamped = Math.min(35, Math.max(5, Math.round(value * 2) / 2));
+    this.log(`Setze MK1 Kurve Parallelverschiebung: ${clamped} °C (parameter 15)`);
+    this._setWriteProtect('mk1_curve_offset', 120000);
+    await this._write('mk1_curve_parallel_offset', clamped);
+    this.log(`MK1 Kurve Parallelverschiebung erfolgreich gesendet: ${clamped} °C`);
+  }
+
+  async _setOutdoorTempMin(value) {
+    // parameter 92 = temperature_outdoor_min; kein Named-Write → _writeRaw
+    const clamped = Math.min(10, Math.max(-30, Math.round(value * 2) / 2));
+    this.log(`Setze Min. Aussentemperatur: ${clamped} °C (parameter 92)`);
+    this._setWriteProtect('outdoor_temp_min', 120000);
+    await this._writeRaw(92, Math.round(clamped * 10));
+    this.log(`Min. Aussentemperatur erfolgreich gesendet: ${clamped} °C`);
+  }
+
+  async _setTempSetbackLimit(value) {
+    // parameter 111 = thresholdTemperatureSetBack; kein Named-Write → _writeRaw
+    const clamped = Math.min(10, Math.max(-20, Math.round(value * 2) / 2));
+    this.log(`Setze Absenk-Temperaturgrenze: ${clamped} °C (parameter 111)`);
+    this._setWriteProtect('temp_setback_limit', 120000);
+    await this._writeRaw(111, Math.round(clamped * 10));
+    this.log(`Absenk-Temperaturgrenze erfolgreich gesendet: ${clamped} °C`);
+  }
+
+  async _setSupplyTempLimit(value) {
+    // parameter 149 = temperature_supply_limit; kein Named-Write → _writeRaw
+    const clamped = Math.min(70, Math.max(20, Math.round(value * 2) / 2));
+    this.log(`Setze Vorlauftemperatur-Grenze: ${clamped} °C (parameter 149)`);
+    this._setWriteProtect('supply_temp_limit', 120000);
+    await this._writeRaw(149, Math.round(clamped * 10));
+    this.log(`Vorlauftemperatur-Grenze erfolgreich gesendet: ${clamped} °C`);
+  }
+
+  async _setReturnTempLimit(value) {
+    // parameter 87 = temperature_return_limit; kein Named-Write → _writeRaw
+    const clamped = Math.min(65, Math.max(20, Math.round(value * 2) / 2));
+    this.log(`Setze Rücklauftemperatur-Grenze: ${clamped} °C (parameter 87)`);
+    this._setWriteProtect('return_temp_limit', 120000);
+    await this._writeRaw(87, Math.round(clamped * 10));
+    this.log(`Rücklauftemperatur-Grenze erfolgreich gesendet: ${clamped} °C`);
+  }
+
+  async _setReturnTempMin(value) {
+    // parameter 979 = returnTemperatureTargetMin; kein Named-Write → _writeRaw
+    const clamped = Math.min(30, Math.max(5, Math.round(value * 2) / 2));
+    this.log(`Setze Rücklauftemperatur Minimum: ${clamped} °C (parameter 979)`);
+    this._setWriteProtect('return_temp_min', 120000);
+    await this._writeRaw(979, Math.round(clamped * 10));
+    this.log(`Rücklauftemperatur Minimum erfolgreich gesendet: ${clamped} °C`);
+  }
+
+  async _setDeltaHeatingReduction(value) {
+    const clamped = Math.min(10, Math.max(-15, Math.round(value * 10) / 10));
+    this.log(`Setze Absenkung Heizung Delta: ${clamped} K (parameter 13)`);
+    this._setWriteProtect('delta_heating_reduction', 120000);
+    await this._write('deltaHeatingReduction', clamped);
+    this.log(`Absenkung Heizung Delta erfolgreich gesendet: ${clamped} K`);
+  }
+
+  async _setDeltaMk1Reduction(value) {
+    const clamped = Math.min(10, Math.max(-15, Math.round(value * 10) / 10));
+    this.log(`Setze Absenkung MK1 Delta: ${clamped} K (parameter 16)`);
+    this._setWriteProtect('delta_mk1_reduction', 120000);
+    await this._write('deltaMk1Reduction', clamped);
+    this.log(`Absenkung MK1 Delta erfolgreich gesendet: ${clamped} K`);
+  }
+
+  async _setTempZweEnable(value) {
+    // parameter 90 = temperature_ZWE_possible; kein Named-Write → _writeRaw
+    const clamped = Math.min(20, Math.max(-20, Math.round(value * 2) / 2));
+    this.log(`Setze ZWE Freigabe-Temperatur: ${clamped} °C (parameter 90)`);
+    this._setWriteProtect('temp_zwe_enable', 120000);
+    await this._writeRaw(90, Math.round(clamped * 10));
+    this.log(`ZWE Freigabe-Temperatur erfolgreich gesendet: ${clamped} °C`);
+  }
+
+  async _setTemp2ndCompHeating(value) {
+    const clamped = Math.min(30, Math.max(-20, Math.round(value * 2) / 2));
+    this.log(`Setze 2. Verdichter Aussentemp. Heizen: ${clamped} °C (parameter 95)`);
+    this._setWriteProtect('temp_2nd_comp_heating', 120000);
+    await this._write('heating_temperature_outside_2nd_compressor', clamped);
+    this.log(`2. Verdichter Aussentemp. Heizen erfolgreich gesendet: ${clamped} °C`);
+  }
+
+  async _setTemp2ndCompHotwater(value) {
+    const clamped = Math.min(70, Math.max(10, Math.round(value * 2) / 2));
+    this.log(`Setze 2. Verdichter Vorlauftemp. Warmwasser: ${clamped} °C (parameter 96)`);
+    this._setWriteProtect('temp_2nd_comp_hotwater', 120000);
+    await this._write('hotwater_temperature_forerun_2nd_compressor', clamped);
+    this.log(`2. Verdichter Vorlauftemp. Warmwasser erfolgreich gesendet: ${clamped} °C`);
+  }
+
+  async _setCoolingReleaseTemp(value) {
+    const clamped = Math.min(40, Math.max(10, Math.round(value * 2) / 2));
+    this.log(`Setze Kühlung Freigabe-Temperatur: ${clamped} °C (parameter 110)`);
+    this._setWriteProtect('cooling_release_temp_cap', 120000);
+    await this._write('cooling_release_temp', clamped);
+    this.log(`Kühlung Freigabe-Temperatur erfolgreich gesendet: ${clamped} °C`);
+  }
+
+  async _setCoolingInletTemp(value) {
+    const clamped = Math.min(30, Math.max(5, Math.round(value * 2) / 2));
+    this.log(`Setze Kühlung Einlauftemperatur: ${clamped} °C (parameter 132)`);
+    this._setWriteProtect('cooling_inlet_temp_cap', 120000);
+    await this._write('cooling_inlet_temp', clamped);
+    this.log(`Kühlung Einlauftemperatur erfolgreich gesendet: ${clamped} °C`);
   }
 
   _writeRaw(parameterIndex, setValue) {
@@ -1002,6 +1478,19 @@ class LuxtronikHeatpumpDevice extends Device {
 
   _setWriteProtect(capability, ms = 120000) {
     this._writeProtectUntil[capability] = Date.now() + ms;
+  }
+
+  /**
+   * Synchronisiert den Wert einer Einstellung mit dem aktuell gelesenen Controller-Wert.
+   * Wird nach jedem Poll aufgerufen damit die Einstellungs-UI den echten Controller-Wert
+   * anzeigt (nicht den Default aus driver.compose.json).
+   * Schreibt NICHT wenn Write-Schutz aktiv ist (= Nutzer hat gerade manuell geändert).
+   * Hinweis: Device.setSettings() löst onSettings() NICHT aus, daher keine Schleife.
+   */
+  async _syncSetting(capabilityId, settingKey, value) {
+    if (value === null || value === undefined) return;
+    if (this._writeProtectUntil[capabilityId] && Date.now() < this._writeProtectUntil[capabilityId]) return;
+    try { await this.setSettings({ [settingKey]: value }); } catch (e) { /* ignore */ }
   }
 
   _n(val) {

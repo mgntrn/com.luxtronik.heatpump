@@ -228,8 +228,8 @@
     </div>
 
     <div class="card">
-      <div class="card-header"><span class="tag tag-write">Write</span><span class="card-name"><span data-lang="de">Thermische Desinfektion Soll (TDI)</span><span data-lang="en">Thermal Disinfection Setpoint (TDI)</span></span></div>
-      <div class="card-desc"><span data-lang="de">50–80 °C · Liest und schreibt direkt am Controller (Parameter 47) · Dient auch als Abschaltgrenze für den Dauerbetrieb</span><span data-lang="en">50–80 °C · Reads and writes directly on the controller (parameter 47) · Also used as shutoff threshold for continuous mode</span></div>
+      <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Thermische Desinfektion Soll (TDI)</span><span data-lang="en">Thermal Disinfection Setpoint (TDI)</span></span></div>
+      <div class="card-desc"><span data-lang="de">Sensor (°C) · Zeigt den aktuellen Wert direkt vom Controller (Parameter 47). Dient als Abschaltgrenze für den Dauerbetrieb (TDI-Soll − 1 °C). Einstellbar unter <strong>Geräteeinstellungen → Temperatur-Einstellungen</strong>.</span><span data-lang="en">Sensor (°C) · Shows the current value read directly from the controller (parameter 47). Used as shutoff threshold for continuous mode (TDI setpoint − 1 °C). Configurable under <strong>Device Settings → Temperature Settings</strong>.</span></div>
     </div>
 
     <div class="card">
@@ -245,6 +245,166 @@
     <div class="card">
       <div class="card-header"><span class="tag tag-write">Write</span><span class="card-name"><span data-lang="de">Kühlbetrieb-Betriebsart</span><span data-lang="en">Cooling Mode</span></span></div>
       <div class="card-desc"><span data-lang="de">Aus · Automatik · Nur sichtbar wenn Kühlung vom Controller freigegeben ist</span><span data-lang="en">Off · Automatic · Only visible if cooling is enabled by the controller</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Heizgrenze</span><span data-lang="en">Heating Limit</span></span></div>
+      <div class="card-desc">
+        <span data-lang="de">Sensor (°C) · Zeigt den aktuellen Wert direkt vom Controller (Parameter 700). Aussentemperatur, oberhalb derer der Heizbetrieb abschaltet — Warmwasser läuft weiter. Beispiel: 15 °C → WP heizt nur wenn Aussentemperatur &lt; 15 °C. Verhindert unnötiges Heizen bei warmen Aussentemperaturen. Typisch: 15–18 °C (FBH) · 16–20 °C (Radiatoren) · 12–15 °C (gut gedämmt). Einstellbar unter <strong>Geräteeinstellungen → Temperatur-Einstellungen</strong>.</span>
+        <span data-lang="en">Sensor (°C) · Shows the current value read directly from the controller (parameter 700). Outdoor temperature above which heating is switched off — hot water continues. Example: 15 °C → heat pump heats only when outdoor temp &lt; 15 °C. Prevents unnecessary heating in mild weather. Typical: 15–18 °C (underfloor) · 16–20 °C (radiators) · 12–15 °C (well-insulated). Configurable under <strong>Device Settings → Temperature Settings</strong>.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Max. Aussentemperatur</span><span data-lang="en">Max. Outdoor Temperature</span></span></div>
+      <div class="card-desc">
+        <span data-lang="de">Sensor (°C) · Konfigurierter Maximalwert der Aussentemperatur am Controller (Parameter 91). Oberhalb dieses Werts wechselt die WP in einen definierten Betriebszustand (z.B. kein Heizen, Kühlfreigabe). Einstellbar unter <strong>Geräteeinstellungen → Temperatur-Einstellungen</strong>.</span>
+        <span data-lang="en">Sensor (°C) · Configured maximum outdoor temperature value on the controller (parameter 91). Above this value the heat pump switches to a defined operating state (e.g. no heating, cooling release). Configurable under <strong>Device Settings → Temperature Settings</strong>.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Warmwasser-Hysterese</span><span data-lang="en">Hot Water Hysteresis</span></span></div>
+      <div class="card-desc">
+        <span data-lang="de">Sensor (K) · Zeigt den aktuellen Wert direkt vom Controller (Parameter 74). Legt fest, wie weit die Warmwassertemperatur unter den Sollwert fallen muss, bevor die Nachheizung erneut startet. Beispiel: Sollwert 50 °C, Hysterese 5 K → Nachheizung beginnt bei 45 °C. Einstellbar unter <strong>Geräteeinstellungen → Temperatur-Einstellungen</strong>.</span>
+        <span data-lang="en">Sensor (K) · Shows the current value read directly from the controller (parameter 74). Defines how far the hot water temperature must drop below the setpoint before reheating restarts. Example: setpoint 50 °C, hysteresis 5 K → reheating starts at 45 °C. Configurable under <strong>Device Settings → Temperature Settings</strong>.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Rücklauf-Hysterese</span><span data-lang="en">Return Temperature Hysteresis</span></span></div>
+      <div class="card-desc">
+        <span data-lang="de">Sensor (K) · Nur sichtbar wenn vom Controller unterstützt (Parameter 88). Die Luxtronik regelt den Heizkreis über die Soll-Rücklauftemperatur aus der Heizkurve. Beispiel: Soll-Rücklauf 30 °C, Hysterese 3 K → WP startet bei 27 °C, stoppt bei Sollwert. Grössere Hysterese = längere Laufzeiten, weniger Starts, besserer COP. Typisch: 2–4 K (FBH) · 3–6 K (Radiatoren). Einstellbar unter <strong>Geräteeinstellungen → Heizkreis-Temperaturgrenzen</strong>.</span>
+        <span data-lang="en">Sensor (K) · Only visible if supported by the controller (parameter 88). The Luxtronik controls the heating circuit via the target return temperature from the heating curve. Example: target return 30 °C, hysteresis 3 K → heat pump starts at 27 °C, stops at setpoint. Larger value = longer run times, fewer starts, better COP. Typical: 2–4 K (underfloor) · 3–6 K (radiators). Configurable under <strong>Device Settings → Heating Circuit Limits</strong>.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Heizkurve Endpunkt</span><span data-lang="en">Heating Curve Endpoint</span></span></div>
+      <div class="card-desc">
+        <span data-lang="de">Sensor (°C) · Nur sichtbar wenn vom Controller unterstützt (Parameter 11). Endpunkt der Heizkurve bei maximaler Auslegungstemperatur. Einstellbar unter <strong>Geräteeinstellungen → Heizkurve</strong>.</span>
+        <span data-lang="en">Sensor (°C) · Only visible if supported by the controller (parameter 11). Endpoint of the heating curve at maximum design temperature. Configurable under <strong>Device Settings → Heating Curve</strong>.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Heizkurve Parallelverschiebung</span><span data-lang="en">Heating Curve Parallel Offset</span></span></div>
+      <div class="card-desc">
+        <span data-lang="de">Sensor (°C) · Nur sichtbar wenn vom Controller unterstützt (Parameter 12). Parallelverschiebung der Heizkurve ohne Änderung der Steigung. Einstellbar unter <strong>Geräteeinstellungen → Heizkurve</strong>.</span>
+        <span data-lang="en">Sensor (°C) · Only visible if supported by the controller (parameter 12). Parallel offset of the heating curve without changing the slope. Configurable under <strong>Device Settings → Heating Curve</strong>.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">MK1 Kurve Endpunkt</span><span data-lang="en">MK1 Curve Endpoint</span></span></div>
+      <div class="card-desc">
+        <span data-lang="de">Sensor (°C) · Nur sichtbar wenn vom Controller unterstützt (Parameter 14). Endpunkt der Heizkurve für Mischkreis MK1. Einstellbar unter <strong>Geräteeinstellungen → Heizkurve</strong>.</span>
+        <span data-lang="en">Sensor (°C) · Only visible if supported by the controller (parameter 14). Endpoint of the heating curve for mixing circuit MK1. Configurable under <strong>Device Settings → Heating Curve</strong>.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">MK1 Kurve Parallelverschiebung</span><span data-lang="en">MK1 Curve Parallel Offset</span></span></div>
+      <div class="card-desc">
+        <span data-lang="de">Sensor (°C) · Nur sichtbar wenn vom Controller unterstützt (Parameter 15). Parallelverschiebung der Heizkurve für Mischkreis MK1. Einstellbar unter <strong>Geräteeinstellungen → Heizkurve</strong>.</span>
+        <span data-lang="en">Sensor (°C) · Only visible if supported by the controller (parameter 15). Parallel offset of the heating curve for mixing circuit MK1. Configurable under <strong>Device Settings → Heating Curve</strong>.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Min. Aussentemperatur</span><span data-lang="en">Min. Outdoor Temperature</span></span></div>
+      <div class="card-desc">
+        <span data-lang="de">Sensor (°C) · Konfigurierter Minimalwert der Aussentemperatur am Controller (Parameter 92). Einstellbar unter <strong>Geräteeinstellungen → Betriebsgrenzen Aussentemperatur</strong>.</span>
+        <span data-lang="en">Sensor (°C) · Configured minimum outdoor temperature on the controller (parameter 92). Configurable under <strong>Device Settings → Outdoor Temperature Limits</strong>.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Absenk-Temperaturgrenze</span><span data-lang="en">Setback Temperature Limit</span></span></div>
+      <div class="card-desc">
+        <span data-lang="de">Sensor (°C) · Aussentemperatur-Schwellwert unterhalb dessen die Absenkung aktiviert wird (Parameter 111). Einstellbar unter <strong>Geräteeinstellungen → Betriebsgrenzen Aussentemperatur</strong>.</span>
+        <span data-lang="en">Sensor (°C) · Outdoor temperature threshold below which setback mode is activated (parameter 111). Configurable under <strong>Device Settings → Outdoor Temperature Limits</strong>.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Vorlauftemperatur-Grenze</span><span data-lang="en">Supply Temperature Limit</span></span></div>
+      <div class="card-desc">
+        <span data-lang="de">Sensor (°C) · Maximale Vorlauftemperatur für den Heizkreis (Parameter 149). Die WP überschreitet diesen Wert nicht. Einstellbar unter <strong>Geräteeinstellungen → Heizkreis-Temperaturgrenzen</strong>.</span>
+        <span data-lang="en">Sensor (°C) · Maximum supply temperature for the heating circuit (parameter 149). The heat pump will not exceed this value. Configurable under <strong>Device Settings → Heating Circuit Limits</strong>.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Rücklauftemperatur-Grenze</span><span data-lang="en">Return Temperature Limit</span></span></div>
+      <div class="card-desc">
+        <span data-lang="de">Sensor (°C) · Maximale Rücklauftemperatur für den Heizkreis (Parameter 87). Einstellbar unter <strong>Geräteeinstellungen → Heizkreis-Temperaturgrenzen</strong>.</span>
+        <span data-lang="en">Sensor (°C) · Maximum return temperature for the heating circuit (parameter 87). Configurable under <strong>Device Settings → Heating Circuit Limits</strong>.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Rücklauftemperatur Minimum</span><span data-lang="en">Return Temperature Min.</span></span></div>
+      <div class="card-desc">
+        <span data-lang="de">Sensor (°C) · Minimale Rücklauftemperatur-Vorgabe für den Heizkreis (Parameter 979). Einstellbar unter <strong>Geräteeinstellungen → Heizkreis-Temperaturgrenzen</strong>.</span>
+        <span data-lang="en">Sensor (°C) · Minimum return temperature target for the heating circuit (parameter 979). Configurable under <strong>Device Settings → Heating Circuit Limits</strong>.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Absenkung Heizung Delta</span><span data-lang="en">Heating Setback Delta</span></span></div>
+      <div class="card-desc">
+        <span data-lang="de">Sensor (K) · Temperaturdelta für den Absenkbetrieb der Heizung (Parameter 13). Negativer Wert senkt die Solltemperatur ab. Einstellbar unter <strong>Geräteeinstellungen → Absenkung</strong>.</span>
+        <span data-lang="en">Sensor (K) · Temperature delta applied during heating setback mode (parameter 13). Negative value lowers the target temperature. Configurable under <strong>Device Settings → Setback</strong>.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Absenkung MK1 Delta</span><span data-lang="en">MK1 Setback Delta</span></span></div>
+      <div class="card-desc">
+        <span data-lang="de">Sensor (K) · Temperaturdelta für den Absenkbetrieb von Mischkreis MK1 (Parameter 16). Einstellbar unter <strong>Geräteeinstellungen → Absenkung</strong>.</span>
+        <span data-lang="en">Sensor (K) · Temperature delta applied to MK1 mixing circuit during setback mode (parameter 16). Configurable under <strong>Device Settings → Setback</strong>.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">ZWE Freigabe-Temperatur</span><span data-lang="en">ZWE Enable Temperature</span></span></div>
+      <div class="card-desc">
+        <span data-lang="de">Sensor (°C) · Aussentemperatur unterhalb derer der Zuheizer (ZWE) freigegeben wird (Parameter 90). Einstellbar unter <strong>Geräteeinstellungen → Zuheizer / 2. Verdichter</strong>.</span>
+        <span data-lang="en">Sensor (°C) · Outdoor temperature below which the auxiliary heater (ZWE) is enabled (parameter 90). Configurable under <strong>Device Settings → Auxiliary Heater / 2nd Compressor</strong>.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">2. Verdichter Aussentemp. Heizen</span><span data-lang="en">2nd Compressor Heating Temp.</span></span></div>
+      <div class="card-desc">
+        <span data-lang="de">Sensor (°C) · Aussentemperatur unterhalb derer der 2. Verdichter für den Heizbetrieb zugeschaltet wird (Parameter 95). Einstellbar unter <strong>Geräteeinstellungen → Zuheizer / 2. Verdichter</strong>.</span>
+        <span data-lang="en">Sensor (°C) · Outdoor temperature below which the 2nd compressor is activated for heating (parameter 95). Configurable under <strong>Device Settings → Auxiliary Heater / 2nd Compressor</strong>.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">2. Verdichter Vorlauftemp. Warmwasser</span><span data-lang="en">2nd Compressor Hot Water Temp.</span></span></div>
+      <div class="card-desc">
+        <span data-lang="de">Sensor (°C) · Vorlauftemperatur-Schwellwert für die Zuschaltung des 2. Verdichters bei der Warmwasserbereitung (Parameter 96). Einstellbar unter <strong>Geräteeinstellungen → Zuheizer / 2. Verdichter</strong>.</span>
+        <span data-lang="en">Sensor (°C) · Supply temperature threshold for activating the 2nd compressor during hot water preparation (parameter 96). Configurable under <strong>Device Settings → Auxiliary Heater / 2nd Compressor</strong>.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Kühlung Freigabe-Temperatur</span><span data-lang="en">Cooling Release Temperature</span></span></div>
+      <div class="card-desc">
+        <span data-lang="de">Sensor (°C) · Aussentemperatur oberhalb derer die Kühlung freigegeben wird (Parameter 110). Nur sichtbar wenn Kühlung aktiv ist. Einstellbar unter <strong>Geräteeinstellungen → Kühlung</strong>.</span>
+        <span data-lang="en">Sensor (°C) · Outdoor temperature above which cooling is released (parameter 110). Only visible when cooling is active. Configurable under <strong>Device Settings → Cooling</strong>.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Kühlung Einlauftemperatur</span><span data-lang="en">Cooling Inlet Temperature</span></span></div>
+      <div class="card-desc">
+        <span data-lang="de">Sensor (°C) · Ziel-Einlauftemperatur für den Kühlkreis (Parameter 132). Nur sichtbar wenn Kühlung aktiv ist. Einstellbar unter <strong>Geräteeinstellungen → Kühlung</strong>.</span>
+        <span data-lang="en">Sensor (°C) · Target inlet temperature for the cooling circuit (parameter 132). Only visible when cooling is active. Configurable under <strong>Device Settings → Cooling</strong>.</span>
+      </div>
     </div>
   </div>
 </div>
@@ -335,6 +495,10 @@
     <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Brauchwasser Soll-Temperatur setzen / anpassen</span><span data-lang="en">Set / adjust hot water target temperature</span></div><div class="flow-desc"><span data-lang="de">Absolut 30–65 °C oder Offset ±20 °C</span><span data-lang="en">Absolute 30–65 °C or offset ±20 °C</span></div></div></div>
     <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Schnellladung (Zuheizung/Party) starten / stoppen</span><span data-lang="en">Start / stop Hot Water Boost (Auxiliary/Party)</span></div><div class="flow-desc"><span data-lang="de">Dauer 5–480 Min.</span><span data-lang="en">Duration 5–480 min</span></div></div></div>
     <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Thermische Desinfektion aktivieren / deaktivieren</span><span data-lang="en">Enable / disable Thermal Disinfection</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Max. Aussentemperatur setzen</span><span data-lang="en">Set max. outdoor temperature</span></div><div class="flow-desc"><span data-lang="de">10–45 °C · alternativ via Geräteeinstellungen</span><span data-lang="en">10–45 °C · alternatively via Device Settings</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Heizgrenze setzen</span><span data-lang="en">Set heating limit</span></div><div class="flow-desc"><span data-lang="de">5–30 °C · alternativ via Geräteeinstellungen</span><span data-lang="en">5–30 °C · alternatively via Device Settings</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Warmwasser-Hysterese setzen</span><span data-lang="en">Set hot water hysteresis</span></div><div class="flow-desc">0,5–10 K</div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Rücklauf-Hysterese setzen</span><span data-lang="en">Set return temperature hysteresis</span></div><div class="flow-desc"><span data-lang="de">0,5–10 K · nur wenn Controller-Unterstützung vorhanden · alternativ via Geräteeinstellungen</span><span data-lang="en">0.5–10 K · only if controller supports it · alternatively via Device Settings</span></div></div></div>
   </div>
 </div>
 

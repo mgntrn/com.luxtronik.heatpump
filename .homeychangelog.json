@@ -111,8 +111,13 @@
     "en": "New: Homey Timeline integration — key events (state changes, errors, thermal disinfection completed, hot water boost started/ended) are now written to the Homey Timeline in the interface language (DE/EN).",
     "de": "Neu: Homey Timeline-Integration — wichtige Ereignisse (Betriebsartwechsel, Fehler, Thermische Desinfektion abgeschlossen, Schnellladung gestartet/beendet) werden jetzt in der Homey-Timeline in der Benutzersprache (DE/EN) eingetragen."
   },
+
   "2.0.33": {
     "en": "Fix: Notifications now correctly use the Homey SDK v3 notifications API. Added push notifications for heating, hot water and cooling mode changes. New flow triggers: Hot Water Boost started (auxiliary & party).",
     "de": "Fix: Benachrichtigungen nutzen jetzt korrekt die Homey SDK v3 Notifications-API. Neue Push-Benachrichtigungen bei Betriebsart-Änderungen (Heizung, Warmwasser, Kühlung). Neue Flow-Auslöser: Schnellladung gestartet (Zuheizung & Party)."
+  },
+    "2.0.34": {
+    "en": "Added: Added 21 new read‑only sensor capabilities, new flow actions, reorganized device settings into 7 groups, and updated the in‑app help page. Changed: Replaced target_temperature.tdi with tdi_target_temperature and now use the controller as the single source of truth. Fixed: Synced all settings after each poll, blocked writes before first poll, and added _shouldWrite to prevent unintended controller writes.",
+    "de": "Added: 21 neue Read‑Only‑Sensoren, neue Flow‑Actions, neu strukturierte Geräteeinstellungen und aktualisierte Hilfeseite. Changed: target_temperature.tdi durch tdi_target_temperature ersetzt und Controller als einzige Datenquelle festgelegt. Fixed: Einstellungen nach jedem Poll korrekt synchronisiert, Schreibvorgänge vor erstem Poll blockiert und _shouldWrite gegen unbeabsichtigte Writes ergänzt."
   }
 }

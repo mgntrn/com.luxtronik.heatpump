@@ -1,0 +1,17 @@
+{
+  "type": "number",
+  "title": {
+    "en": "2nd Compressor Heating Temp.",
+    "de": "2. Verdichter Aussentemp. Heizen"
+  },
+  "units": {
+    "en": "°C",
+    "de": "°C"
+  },
+  "decimals": 1,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": false,
+  "icon": "/assets/capabilities/heating.svg"
+}

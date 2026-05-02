@@ -1,0 +1,17 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Min. Outdoor Temperature",
+    "de": "Min. Aussentemperatur"
+  },
+  "units": {
+    "en": "°C",
+    "de": "°C"
+  },
+  "decimals": 1,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true,
+  "icon": "/assets/capabilities/temperature.svg"
+}
