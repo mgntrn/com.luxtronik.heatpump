@@ -119,5 +119,9 @@
     "2.0.34": {
     "en": "Added: Added 21 new read‑only sensor capabilities, new flow actions, reorganized device settings into 7 groups, and updated the in‑app help page. Changed: Replaced target_temperature.tdi with tdi_target_temperature and now use the controller as the single source of truth. Fixed: Synced all settings after each poll, blocked writes before first poll, and added _shouldWrite to prevent unintended controller writes.",
     "de": "Added: 21 neue Read‑Only‑Sensoren, neue Flow‑Actions, neu strukturierte Geräteeinstellungen und aktualisierte Hilfeseite. Changed: target_temperature.tdi durch tdi_target_temperature ersetzt und Controller als einzige Datenquelle festgelegt. Fixed: Einstellungen nach jedem Poll korrekt synchronisiert, Schreibvorgänge vor erstem Poll blockiert und _shouldWrite gegen unbeabsichtigte Writes ergänzt."
+  },
+  "2.0.35": {
+    "en": "Fixed: Room temperature (measure_temp_room) and room target temperature (measure_temp_room_target) now correctly read from the controller when an RBE room display is connected.",
+    "de": "Behoben: Raumtemperatur (measure_temp_room) und Raumtemperatur-Soll (measure_temp_room_target) werden jetzt korrekt vom Controller gelesen, wenn ein RBE-Raumdisplay angeschlossen ist."
   }
 }

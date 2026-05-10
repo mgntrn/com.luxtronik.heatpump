@@ -781,7 +781,8 @@ class LuxtronikHeatpumpDevice extends Device {
     const suctionAirTemp = this._n(v.Temp_Lueftung_Zuluft);
     await this._setCapabilityConditional('measure_temp_suction_air', suctionAirTemp, suctionAirTemp !== null && suctionAirTemp > 0);
     // Raumtemperatur (nur mit RBE-Raumdisplay — Capability nur anzeigen wenn Wert > 0)
-    const roomTemp       = this._n(v.Temperatur_RFV);
+    // Hinweis: Lib-Key ist 'temperaturw_RFV' (Tippfehler in luxtronik2, kleines t + 'w')
+    const roomTemp       = this._n(v.temperaturw_RFV);
     const roomTempTarget = this._n(v.Temperatur_RFV2);
     await this._setCapabilityConditional('measure_temp_room',        roomTemp,       roomTemp !== null && roomTemp > 0);
     await this._setCapabilityConditional('measure_temp_room_target', roomTempTarget, roomTempTarget !== null && roomTempTarget > 0);
