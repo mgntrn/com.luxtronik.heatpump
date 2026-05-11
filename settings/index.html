@@ -113,6 +113,17 @@
     /* ── Footer ── */
     .footer { padding: 16px; text-align: center; color: var(--muted); font-size: 11px; border-top: 1px solid var(--border); }
     .footer a { color: var(--accent); text-decoration: none; }
+
+    /* ── Log Modal ── */
+    .log-modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:500; align-items:center; justify-content:center; }
+    .log-modal-backdrop.open { display:flex; }
+    .log-modal { background:var(--surface); border-radius:12px; padding:16px; width:90%; max-width:560px; max-height:80vh; display:flex; flex-direction:column; gap:10px; box-shadow:0 8px 32px rgba(0,0,0,.25); }
+    .log-modal-title { font-size:13px; font-weight:700; color:var(--text); }
+    .log-modal textarea { flex:1; min-height:260px; font-family:monospace; font-size:11px; border:1px solid var(--border); border-radius:8px; padding:8px; resize:none; background:var(--bg); color:var(--text); }
+    .log-modal-actions { display:flex; gap:8px; justify-content:flex-end; }
+    .log-modal-actions button { padding:7px 16px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; border:1px solid var(--border); }
+    .btn-copy  { background:var(--accent); color:#fff; border-color:var(--accent); }
+    .btn-close { background:var(--surface); color:var(--text); }
   </style>
 </head>
 <body class="lang-de">
@@ -170,6 +181,16 @@
     <button class="nav-item" onclick="showTab('settings')">
       <span class="nav-icon">⚙️</span>
       <span><span data-lang="de">Einstellungen</span><span data-lang="en">Settings</span></span>
+      <span class="nav-check">✓</span>
+    </button>
+    <button class="nav-item" onclick="showTab('debug'); loadDebugData()">
+      <span class="nav-icon">🔍</span>
+      <span>Debug</span>
+      <span class="nav-check">✓</span>
+    </button>
+    <button class="nav-item" onclick="showTab('version'); loadVersionData()">
+      <span class="nav-icon">ℹ️</span>
+      <span><span data-lang="de">Version</span><span data-lang="en">Version</span></span>
       <span class="nav-check">✓</span>
     </button>
   </div>
@@ -572,6 +593,88 @@
   </div>
 </div>
 
+<!-- ══ DEBUG ══ -->
+<div id="tab-debug" class="tab-content">
+  <div class="section">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+      <input id="debug-search" type="text" placeholder="🔍 Filter…" oninput="filterDebug()"
+        style="flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface);color:var(--text);">
+      <button onclick="copyDebugLog()" id="debug-copy-btn"
+        style="padding:7px 14px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:700;background:var(--surface);color:var(--text);cursor:pointer;white-space:nowrap;">
+        📋 Copy Log
+      </button>
+      <button onclick="loadDebugData()"
+        style="padding:7px 14px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:700;background:var(--surface);color:var(--text);cursor:pointer;">
+        ↻ <span data-lang="de">Aktualisieren</span><span data-lang="en">Refresh</span>
+      </button>
+    </div>
+    <div id="debug-ts" style="font-size:11px;color:var(--muted);margin-bottom:12px;">
+      <span id="debug-ts-poll"></span><span id="debug-ts-ver" style="margin-left:12px;"></span>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+      <span class="section-title" style="margin-bottom:0;">values</span>
+      <span id="debug-values-count" style="font-size:10px;font-weight:700;background:#dbeafe;color:var(--blue);padding:1px 7px;border-radius:10px;"></span>
+    </div>
+    <div class="table-wrap" style="margin-bottom:16px;">
+      <table class="settings-table" id="debug-values-table">
+        <thead><tr><th>Key</th><th>Value</th></tr></thead>
+        <tbody id="debug-values-body"></tbody>
+      </table>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+      <span class="section-title" style="margin-bottom:0;">parameters</span>
+      <span id="debug-params-count" style="font-size:10px;font-weight:700;background:#dbeafe;color:var(--blue);padding:1px 7px;border-radius:10px;"></span>
+    </div>
+    <div class="table-wrap">
+      <table class="settings-table" id="debug-params-table">
+        <thead><tr><th>Key</th><th>Value</th></tr></thead>
+        <tbody id="debug-params-body"></tbody>
+      </table>
+    </div>
+
+    <div id="debug-empty" class="infobox" style="display:none;">
+      <strong>Debug</strong><br>
+      <span data-lang="de">Noch keine Daten — warte auf den ersten erfolgreichen Poll.</span>
+      <span data-lang="en">No data yet — waiting for the first successful poll.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LOG MODAL ══ -->
+<div class="log-modal-backdrop" id="log-modal-backdrop" onclick="closeLogModal(event)">
+  <div class="log-modal" onclick="event.stopPropagation()">
+    <div class="log-modal-title">📋 Debug Log — <span data-lang="de">Alles markieren und kopieren (Ctrl+A → Ctrl+C)</span><span data-lang="en">Select all and copy (Ctrl+A → Ctrl+C)</span></div>
+    <textarea id="log-modal-text" readonly onclick="this.select()"></textarea>
+    <div class="log-modal-actions">
+      <button class="btn-copy" id="log-modal-copy-btn" onclick="copyFromModal()">📋 Copy</button>
+      <button class="btn-close" onclick="closeLogModal()"><span data-lang="de">Schliessen</span><span data-lang="en">Close</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ VERSION ══ -->
+<div id="tab-version" class="tab-content">
+  <div class="section">
+    <div class="section-title"><span data-lang="de">App-Information</span><span data-lang="en">App Information</span></div>
+    <div class="table-wrap">
+      <table class="settings-table">
+        <tbody>
+          <tr><td class="key" style="width:40%"><span data-lang="de">App-Version</span><span data-lang="en">App Version</span></td><td id="ver-app" style="font-family:monospace;font-size:12px;">–</td></tr>
+          <tr><td class="key"><span data-lang="de">App-ID</span><span data-lang="en">App ID</span></td><td style="font-family:monospace;font-size:12px;">com.luxtronik.heatpump</td></tr>
+          <tr><td class="key">SDK</td><td style="font-family:monospace;font-size:12px;">Homey SDK v3</td></tr>
+          <tr><td class="key"><span data-lang="de">Kompatibilität</span><span data-lang="en">Compatibility</span></td><td style="font-family:monospace;font-size:12px;">Homey ≥ 5.0.0</td></tr>
+          <tr><td class="key"><span data-lang="de">Protokoll</span><span data-lang="en">Protocol</span></td><td style="font-family:monospace;font-size:12px;">Luxtronik 2.0 / 2.1 (TCP 8889)</td></tr>
+          <tr><td class="key"><span data-lang="de">Bibliothek</span><span data-lang="en">Library</span></td><td style="font-family:monospace;font-size:12px;">luxtronik2 npm</td></tr>
+          <tr><td class="key"><span data-lang="de">Autor</span><span data-lang="en">Author</span></td><td style="font-family:monospace;font-size:12px;">Andi Wirz</td></tr>
+          <tr><td class="key">GitHub</td><td style="font-size:12px;"><a href="https://github.com/andiwirz/com.luxtronik.heatpump" target="_blank" style="color:var(--blue);">andiwirz/com.luxtronik.heatpump</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <div class="footer">
   Luxtronik Heat Pump Manager · <a href="https://paypal.me/AndiWirz" target="_blank">☕ <span data-lang="de">Unterstützen</span><span data-lang="en">Support</span></a> · <a href="https://github.com/andiwirz/com.luxtronik.heatpump" target="_blank">GitHub</a>
 </div>
@@ -610,7 +713,7 @@
     // Update active state in nav menu
     document.querySelectorAll('.nav-item').forEach(function(el) { el.classList.remove('active'); });
     var items = document.querySelectorAll('.nav-item');
-    var tabs  = ['sensors','controls','functions','flows','power','settings'];
+    var tabs  = ['sensors','controls','functions','flows','power','settings','debug','version'];
     var idx   = tabs.indexOf(name);
     if (idx >= 0) items[idx].classList.add('active');
 
@@ -621,6 +724,194 @@
     if (sub && labelSpan) sub.innerHTML = labelSpan.innerHTML;
 
     closeMenu();
+  }
+
+  // ── Debug ──────────────────────────────────────────────────────────────────
+  var _debugData = null;
+
+  // luxtronik2 key → Homey capability ID (one key may map to multiple capabilities)
+  var DEBUG_CAP_MAP = {
+    // values
+    temperature_outside:                    'measure_temp_outdoor',
+    temperature_outside_avg:                'measure_temp_outdoor_avg',
+    temperature_supply:                     'measure_temp_flow',
+    temperature_return:                     'measure_temp_return',
+    temperature_target_return:              'measure_temp_return_target',
+    temperature_hot_gas:                    'measure_temp_hotgas',
+    temperature_hot_water:                  'measure_temp_hotwater, measure_temperature',
+    temperature_hot_water_target:           'measure_temp_hotwater_target',
+    temperature_heat_source_in:             'measure_temp_source_in',
+    temperature_heat_source_out:            'measure_temp_source_out',
+    Temp_Lueftung_Zuluft:                   'measure_temp_suction_air',
+    temperaturw_RFV:                        'measure_temp_room',
+    Temperatur_RFV2:                        'measure_temp_room_target',
+    Durchfluss_WQ:                          'measure_volume_flow',
+    flowRate:                               'measure_volume_flow',
+    thermalenergy_heating:                  'meter_energy_heating',
+    thermalenergy_warmwater:                'meter_energy_hotwater',
+    thermalenergy_total:                    'meter_energy_total',
+    hours_compressor1:                      'measure_hours_compressor',
+    hours_heating:                          'measure_hours_heating',
+    hours_warmwater:                        'measure_hours_hotwater',
+    hours_cooling:                          'measure_hours_cooling',
+    FreigabKuehl:                           'cooling_operation_mode (enable flag)',
+    heatpump_state3:                        'heatpump_state (via map)',
+    heatpump_state1:                        'alarm_generic (error flag)',
+    heatpump_extendet_state_string:         'heating_state_string',
+    opStateHotWaterString:                  'hotwater_state_string',
+    firmware:                               'firmware_version',
+    // parameters
+    heating_operation_mode:                 'heating_operation_mode',
+    warmwater_operation_mode:               'warmwater_operation_mode',
+    cooling_operation_mode:                 'cooling_operation_mode',
+    heating_temperature:                    'target_temperature.heating',
+    warmwater_temperature:                  'target_temperature',
+    temperature_hot_water_limit:            'tdi_target_temperature',
+    thresholdHeatingLimit:                  'heating_limit',
+    temperature_outdoor_max:                'outdoor_temp_max',
+    temperature_outdoor_min:                'outdoor_temp_min',
+    hotWaterTemperatureHysteresis:          'hotwater_hysteresis',
+    returnTemperatureHysteresis:            'return_temp_hysteresis',
+    heating_curve_end_point:                'heating_curve_endpoint',
+    heating_curve_parallel_offset:          'heating_curve_offset',
+    mk1_curve_end_point:                    'mk1_curve_endpoint',
+    mk1_curve_parallel_offset:              'mk1_curve_offset',
+    thresholdTemperatureSetBack:            'temp_setback_limit',
+    temperature_supply_limit:               'supply_temp_limit',
+    temperature_return_limit:               'return_temp_limit',
+    returnTemperatureTargetMin:             'return_temp_min',
+    deltaHeatingReduction:                  'delta_heating_reduction',
+    deltaMk1Reduction:                      'delta_mk1_reduction',
+    temperature_ZWE_possible:               'temp_zwe_enable',
+    heatingTemperatureOutside2ndCompressor: 'temp_2nd_comp_heating',
+    hotwaterTemperatureForerun2ndCompressor:'temp_2nd_comp_hotwater',
+    cooling_release_temperature:            'cooling_release_temp_cap',
+    cooling_inlet_temp:                     'cooling_inlet_temp_cap',
+  };
+
+  function loadDebugData() {
+    Homey.get('luxtronik_debug', function(err, data) {
+      if (err || !data) {
+        document.getElementById('debug-empty').style.display = '';
+        document.getElementById('debug-ts-poll').textContent = '';
+        document.getElementById('debug-ts-ver').textContent = '';
+        document.getElementById('debug-values-count').textContent = '';
+        document.getElementById('debug-params-count').textContent = '';
+        renderDebugTable('debug-values-body', {});
+        renderDebugTable('debug-params-body', {});
+        return;
+      }
+      document.getElementById('debug-empty').style.display = 'none';
+      _debugData = data;
+      var ts = data.timestamp ? new Date(data.timestamp).toLocaleString() : '';
+      document.getElementById('debug-ts-poll').textContent = ts ? ('Last poll: ' + ts) : '';
+      Homey.get('app_version', function(err, ver) {
+        document.getElementById('debug-ts-ver').textContent = ver ? ('v' + ver) : '';
+      });
+      var vCount = Object.keys(data.values     || {}).length;
+      var pCount = Object.keys(data.parameters || {}).length;
+      document.getElementById('debug-values-count').textContent = vCount;
+      document.getElementById('debug-params-count').textContent = pCount;
+      renderDebugTable('debug-values-body',  data.values     || {});
+      renderDebugTable('debug-params-body',  data.parameters || {});
+    });
+  }
+
+  function renderDebugTable(bodyId, obj) {
+    var filter = (document.getElementById('debug-search').value || '').toLowerCase();
+    var tbody = document.getElementById(bodyId);
+    tbody.innerHTML = '';
+    Object.keys(obj).sort().forEach(function(key) {
+      var cap = DEBUG_CAP_MAP[key] || '';
+      if (filter && key.toLowerCase().indexOf(filter) === -1 &&
+          String(obj[key]).toLowerCase().indexOf(filter) === -1 &&
+          cap.toLowerCase().indexOf(filter) === -1) return;
+      var tr = document.createElement('tr');
+      var val = obj[key];
+      var valStr = (val !== null && typeof val === 'object') ? JSON.stringify(val) : String(val);
+      var keyCell = '<span style="font-family:monospace;font-size:11px;font-weight:600;">' + key + '</span>' +
+        (cap ? '<br><span style="font-size:10px;color:var(--blue);font-family:monospace;">' + cap + '</span>' : '');
+      tr.innerHTML = '<td class="key">' + keyCell + '</td>' +
+                     '<td style="font-family:monospace;font-size:11px;word-break:break-all;">' + valStr + '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  function filterDebug() {
+    if (!_debugData) return;
+    renderDebugTable('debug-values-body',  _debugData.values     || {});
+    renderDebugTable('debug-params-body',  _debugData.parameters || {});
+  }
+
+  function buildDebugText() {
+    if (!_debugData) return null;
+    var ver = (document.getElementById('debug-ts-ver').textContent || '').trim();
+    var lines = [];
+    lines.push('=== Luxtronik Debug Log ===');
+    if (ver) lines.push('App Version: ' + ver);
+    lines.push('Timestamp: ' + (_debugData.timestamp || '–'));
+    lines.push('');
+    lines.push('--- VALUES (' + Object.keys(_debugData.values || {}).length + ') ---');
+    Object.keys(_debugData.values || {}).sort().forEach(function(key) {
+      var val = _debugData.values[key];
+      var valStr = (val !== null && typeof val === 'object') ? JSON.stringify(val) : String(val);
+      var cap = DEBUG_CAP_MAP[key] ? '  [' + DEBUG_CAP_MAP[key] + ']' : '';
+      lines.push(key + ': ' + valStr + cap);
+    });
+    lines.push('');
+    lines.push('--- PARAMETERS (' + Object.keys(_debugData.parameters || {}).length + ') ---');
+    Object.keys(_debugData.parameters || {}).sort().forEach(function(key) {
+      var val = _debugData.parameters[key];
+      var valStr = (val !== null && typeof val === 'object') ? JSON.stringify(val) : String(val);
+      var cap = DEBUG_CAP_MAP[key] ? '  [' + DEBUG_CAP_MAP[key] + ']' : '';
+      lines.push(key + ': ' + valStr + cap);
+    });
+    return lines.join('\n');
+  }
+
+  function copyDebugLog() {
+    var text = buildDebugText();
+    if (!text) { alert('No debug data available yet.'); return; }
+    // Versuche Clipboard API — zeige immer Modal als Fallback
+    var showModal = function() {
+      document.getElementById('log-modal-text').value = text;
+      document.getElementById('log-modal-backdrop').classList.add('open');
+      setTimeout(function() { document.getElementById('log-modal-text').select(); }, 100);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function() {
+        var btn = document.getElementById('debug-copy-btn');
+        var orig = btn.innerHTML;
+        btn.innerHTML = '✅ Copied!';
+        setTimeout(function() { btn.innerHTML = orig; }, 2000);
+      }).catch(function() { showModal(); });
+    } else {
+      showModal();
+    }
+  }
+
+  function copyFromModal() {
+    var ta = document.getElementById('log-modal-text');
+    ta.select();
+    try {
+      document.execCommand('copy');
+      var btn = document.getElementById('log-modal-copy-btn');
+      var orig = btn.innerHTML;
+      btn.innerHTML = '✅ Copied!';
+      setTimeout(function() { btn.innerHTML = orig; }, 2000);
+    } catch(e) { /* execCommand not available */ }
+  }
+
+  function closeLogModal(e) {
+    if (!e || e.target === document.getElementById('log-modal-backdrop')) {
+      document.getElementById('log-modal-backdrop').classList.remove('open');
+    }
+  }
+
+  function loadVersionData() {
+    Homey.get('app_version', function(err, ver) {
+      document.getElementById('ver-app').textContent = ver || '–';
+    });
   }
 </script>
 </body>

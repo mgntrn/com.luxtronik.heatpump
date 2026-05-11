@@ -123,5 +123,9 @@
   "2.0.35": {
     "en": "Fixed: Room temperature (measure_temp_room) and room target temperature (measure_temp_room_target) now correctly read from the controller when an RBE room display is connected.",
     "de": "Behoben: Raumtemperatur (measure_temp_room) und Raumtemperatur-Soll (measure_temp_room_target) werden jetzt korrekt vom Controller gelesen, wenn ein RBE-Raumdisplay angeschlossen ist."
+  },
+  "2.0.36": {
+    "en": "New: Debug page in app settings — shows all raw values and parameters from the Luxtronik controller, with capability mapping, live filter, entry count, app version display, and Copy Log export.",
+    "de": "Neu: Debug-Seite in den App-Einstellungen — zeigt alle Rohdaten und Parameter vom Luxtronik-Controller, mit Capability-Mapping, Live-Filter, Anzahl Einträge, App-Versionsanzeige und Copy-Log-Export."
   }
 }

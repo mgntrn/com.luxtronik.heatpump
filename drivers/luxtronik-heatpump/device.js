@@ -711,6 +711,18 @@ class LuxtronikHeatpumpDevice extends Device {
       this._dataDumped = true;
     }
 
+    // Debug-Daten für die Einstellungsseite speichern (Timer-Tabellen ausschliessen — zu gross)
+    try {
+      const debugParams = Object.fromEntries(
+        Object.entries(p).filter(([k]) => !k.toLowerCase().includes('timertable'))
+      );
+      this.homey.settings.set('luxtronik_debug', {
+        timestamp: new Date().toISOString(),
+        values:     v,
+        parameters: debugParams,
+      });
+    } catch (_e) { /* ignore */ }
+
     // ── Temperaturen (data.values) ───────────────────────────────────────────
     const outdoorTemp = this._n(v.temperature_outside);
     if (outdoorTemp !== null && this._lastOutdoorTemp !== null) {
