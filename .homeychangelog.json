@@ -127,5 +127,9 @@
   "2.0.36": {
     "en": "New: Debug page in app settings — shows all raw values and parameters from the Luxtronik controller, with capability mapping, live filter, entry count, app version display, and Copy Log export.",
     "de": "Neu: Debug-Seite in den App-Einstellungen — zeigt alle Rohdaten und Parameter vom Luxtronik-Controller, mit Capability-Mapping, Live-Filter, Anzahl Einträge, App-Versionsanzeige und Copy-Log-Export."
+  },
+  "2.0.37": {
+    "en": "Fixed: Missing capabilities (warmwater_operation_mode, alarm_generic, measure_volume_flow, meter_energy_hotwater, meter_energy_total, measure_hours_compressor, measure_hours_hotwater) are now automatically added to existing device instances on app start. New: Option in device settings to hide cooling capabilities (cooling mode, cooling hours, release temperature, inlet temperature).",
+    "de": "Behoben: Fehlende Capabilities (warmwater_operation_mode, alarm_generic, measure_volume_flow, meter_energy_hotwater, meter_energy_total, measure_hours_compressor, measure_hours_hotwater) werden bei bestehenden Geräten beim App-Start automatisch ergänzt. Neu: Option in den Geräteeinstellungen zum Ausblenden der Kühlungs-Capabilities (Kühlbetrieb, Betriebsstunden, Freigabe-Temperatur, Einlauftemperatur)."
   }
 }

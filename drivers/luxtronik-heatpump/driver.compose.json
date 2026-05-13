@@ -691,6 +691,19 @@
       },
       "children": [
         {
+          "id": "hide_cooling",
+          "type": "checkbox",
+          "label": {
+            "en": "Hide cooling capabilities",
+            "de": "Kühlungs-Capabilities ausblenden"
+          },
+          "value": false,
+          "hint": {
+            "en": "Hides cooling operation mode, cooling hours, cooling release temperature and cooling inlet temperature from the device. Useful if your heat pump supports cooling but you don't use it.",
+            "de": "Blendet Kühlbetrieb, Betriebsstunden Kühlung, Kühlung Freigabe-Temperatur und Kühlung Einlauftemperatur aus. Sinnvoll wenn die Wärmepumpe Kühlung unterstützt, diese aber nicht genutzt wird."
+          }
+        },
+        {
           "id": "cooling_release_temp_setting",
           "type": "number",
           "label": {

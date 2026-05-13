@@ -152,7 +152,29 @@ class LuxtronikHeatpumpDevice extends Device {
       }
     }
     // ── Neue Capabilities hinzufügen falls noch nicht vorhanden ─────────────────
-    const NEW_CAPABILITIES = ['hotwater_boost', 'firmware_version', 'thermal_disinfection_continuous', 'hotwater_boost_party', 'target_temperature', 'measure_temperature', 'heating_state_string', 'hotwater_state_string', 'target_temperature.heating', 'measure_temperature.heating', 'last_poll', 'tdi_target_temperature', 'hotwater_hysteresis', 'return_temp_hysteresis', 'heating_limit', 'outdoor_temp_max', 'heating_curve_endpoint', 'heating_curve_offset', 'mk1_curve_endpoint', 'mk1_curve_offset', 'outdoor_temp_min', 'temp_setback_limit', 'supply_temp_limit', 'return_temp_limit', 'return_temp_min', 'delta_heating_reduction', 'delta_mk1_reduction', 'temp_zwe_enable', 'temp_2nd_comp_heating', 'temp_2nd_comp_hotwater', 'cooling_release_temp_cap', 'cooling_inlet_temp_cap'];
+    const NEW_CAPABILITIES = [
+      // Basis-Capabilities (seit v2.0.0, aber bei sehr alten Installs ggf. fehlend)
+      'warmwater_operation_mode',
+      'alarm_generic',
+      'measure_volume_flow',
+      'meter_energy_hotwater',
+      'meter_energy_total',
+      'measure_hours_compressor',
+      'measure_hours_hotwater',
+      // Später hinzugefügte Capabilities
+      'hotwater_boost', 'firmware_version', 'thermal_disinfection_continuous', 'hotwater_boost_party',
+      'target_temperature', 'measure_temperature', 'heating_state_string', 'hotwater_state_string',
+      'target_temperature.heating', 'measure_temperature.heating', 'last_poll',
+      'tdi_target_temperature', 'hotwater_hysteresis', 'return_temp_hysteresis',
+      'heating_limit', 'outdoor_temp_max', 'heating_curve_endpoint', 'heating_curve_offset',
+      'mk1_curve_endpoint', 'mk1_curve_offset', 'outdoor_temp_min', 'temp_setback_limit',
+      'supply_temp_limit', 'return_temp_limit', 'return_temp_min',
+      'delta_heating_reduction', 'delta_mk1_reduction',
+      'temp_zwe_enable', 'temp_2nd_comp_heating', 'temp_2nd_comp_hotwater',
+      'cooling_release_temp_cap', 'cooling_inlet_temp_cap',
+      // Hinweis: cooling_operation_mode, measure_temp_room, measure_temp_suction_air,
+      // measure_hours_cooling, measure_power, meter_power werden bedingt hinzugefügt
+    ];
     for (const cap of NEW_CAPABILITIES) {
       if (!this.hasCapability(cap)) {
         this.log(`Füge neue Capability hinzu: ${cap}`);
@@ -820,11 +842,16 @@ class LuxtronikHeatpumpDevice extends Device {
     await this._setIfValid('measure_hours_heating',    this._n(v.hours_heating));
     await this._setIfValid('measure_hours_hotwater',   this._n(v.hours_warmwater));
 
-    // ── Kühlung (nur wenn Kühlung freigegeben) ───────────────────────────────
+    // ── Kühlung (nur wenn Kühlung freigegeben UND nicht ausgeblendet) ──────────
     // FreigabKuehl: 0 = gesperrt, 1 = freigegeben
+    // hide_cooling: true = alle Kühlungs-Capabilities ausblenden
     const coolingEnabled = v.FreigabKuehl === 1;
-    await this._setCapabilityConditional('measure_hours_cooling', this._n(v.hours_cooling), coolingEnabled);
-    if (coolingEnabled) {
+    const hideCooling    = this.getSetting('hide_cooling') === true;
+    const showCooling    = coolingEnabled && !hideCooling;
+    await this._setCapabilityConditional('measure_hours_cooling',   this._n(v.hours_cooling), showCooling);
+    await this._setCapabilityConditional('cooling_release_temp_cap', this._n(p.cooling_release_temperature), showCooling);
+    await this._setCapabilityConditional('cooling_inlet_temp_cap',   this._n(p.cooling_inlet_temp),          showCooling);
+    if (showCooling) {
       const coolingMode = this._int(p.cooling_operation_mode) ?? 0;
       const coolingModeStr = String(coolingMode);
       await this._setCapabilityConditional('cooling_operation_mode', coolingModeStr, true);
@@ -1070,13 +1097,11 @@ class LuxtronikHeatpumpDevice extends Device {
     await this._setIfValid('temp_2nd_comp_hotwater', temp2ndHwVal);
     await this._syncSetting('temp_2nd_comp_hotwater', 'temp_2nd_comp_hotwater_setting', temp2ndHwVal);
 
-    // ── Kühlung Temperaturen (nur wenn Kühlung freigegeben) ───────────────────────
-    const coolingRelVal = this._n(p.cooling_release_temperature);
-    await this._setCapabilityConditional('cooling_release_temp_cap', coolingRelVal, coolingEnabled);
-    if (coolingEnabled) await this._syncSetting('cooling_release_temp_cap', 'cooling_release_temp_setting', coolingRelVal);
-    const coolingInletVal = this._n(p.cooling_inlet_temp);
-    await this._setCapabilityConditional('cooling_inlet_temp_cap', coolingInletVal, coolingEnabled);
-    if (coolingEnabled) await this._syncSetting('cooling_inlet_temp_cap', 'cooling_inlet_temp_setting', coolingInletVal);
+    // ── Kühlung Temperaturen — Sync in Device Settings (nur wenn sichtbar) ───────
+    if (showCooling) {
+      await this._syncSetting('cooling_release_temp_cap', 'cooling_release_temp_setting', this._n(p.cooling_release_temperature));
+      await this._syncSetting('cooling_inlet_temp_cap',   'cooling_inlet_temp_setting',   this._n(p.cooling_inlet_temp));
+    }
   }
 
   // ─── Setzer ────────────────────────────────────────────────────────────────
