@@ -27,26 +27,37 @@ This app communicates with the **Luxtronik 2.0 / 2.1** controller, which is buil
 
 ### Readable Values (Sensors)
 
-| Capability                                         | Description                              |
-|----------------------------------------------------|------------------------------------------|
-| Heat Pump Status                                   | Heating / Hot Water / Defrost / Standby / EVU Lock / Cooling / External / Off |
-| Heating Status                                     | Detailed heating status from the controller (Extended State String) |
-| Hot Water Status                                   | Lock Period / Heating Up / Temp. OK / Off |
-| Outdoor Temperature                                | Current + rolling 24h average            |
-| Flow Temperature                                   | Heating circuit flow                     |
-| Return Temperature                                 | Heating circuit return + setpoint        |
-| Hot Gas Temperature                                | Compressor outlet                        |
-| Hot Water Temperature                              | Actual temperature                       |
-| Hot Water Target Temperature (read)                | Setpoint read from the controller        |
-| Heat Source Inlet / Outlet                         | Brine / air temperature                  |
-| Suction Air Temperature                            | Air-source heat pumps only               |
-| Room Temperature Actual / Target                   | Only with connected RBE room display     |
-| Volume Flow                                        | l/h (heat source)                        |
-| Energy Heating / Hot Water / Total                 | kWh (from controller)                    |
-| Operating Hours Compressor / Heating / Hot Water / Cooling | Hours                           |
-| Error Alarm                                        | Error active: Yes / No                   |
-| Last Poll                                          | Time of last successful poll (local time)|
-| Firmware Version                                   | Controller software version              |
+| Icon | Capability                                         | Description                              |
+|------|----------------------------------------------------|------------------------------------------|
+| <img src="assets/capabilities/heatpump_state.svg" width="24"> | Heat Pump State | Heating / Hot Water / Defrost / Standby / EVU Lock / Cooling / External / Off |
+| <img src="assets/capabilities/heating_state_string.svg" width="24"> | Heating Status | Detailed heating status from the controller (Extended State String) |
+| <img src="assets/capabilities/hotwater_state_string.svg" width="24"> | Hot Water Status | Lock Period / Heating Up / Temp. OK / Off |
+| <img src="assets/capabilities/measure_temp_outdoor.svg" width="24"> | Outdoor Temperature | Current + rolling 24h average |
+| <img src="assets/capabilities/outdoor_temp_min.svg" width="24"> <img src="assets/capabilities/outdoor_temp_max.svg" width="24"> | Min. / Max. Outdoor Temperature | Configured limits from the controller |
+| <img src="assets/capabilities/supply_temp.svg" width="24"> | Flow Temperature | Heating circuit flow |
+| <img src="assets/capabilities/return_temp.svg" width="24"> | Return Temperature | Heating circuit return + setpoint |
+| <img src="assets/capabilities/temperature.svg" width="24"> | Hot Gas Temperature | Compressor outlet |
+| <img src="assets/capabilities/measure_temp_hotwater.svg" width="24"> | Hot Water Temperature | Actual temperature |
+| <img src="assets/capabilities/target_temperature_level.svg" width="24"> | Hot Water Target Temperature (read) | Setpoint read from the controller |
+| <img src="assets/capabilities/temperature.svg" width="24"> | Heat Source Inlet / Outlet | Brine / air temperature |
+| <img src="assets/capabilities/measure_temp_outdoor.svg" width="24"> | Suction Air Temperature | Air-source heat pumps only |
+| <img src="assets/capabilities/measure_temperature.svg" width="24"> | Room Temperature Actual / Target | Only with connected RBE room display |
+| <img src="assets/capabilities/flow.svg" width="24"> | Volume Flow | l/h (heat source) |
+| <img src="assets/capabilities/energy.svg" width="24"> | Energy Heating / Hot Water / Total | kWh (from controller) |
+| <img src="assets/capabilities/round-hours-icon.svg" width="24"> | Operating Hours Compressor / Heating / Hot Water / Cooling | Hours |
+| <img src="assets/capabilities/heating_curve.svg" width="24"> | Heating Curve Endpoint / Offset | Heating curve parameters |
+| <img src="assets/capabilities/heating_curve.svg" width="24"> | MK1 Curve Endpoint / Offset | MK1 mixed circuit parameters |
+| <img src="assets/capabilities/heating_limit.svg" width="24"> | Heating Limit | Outdoor temperature limit for heating |
+| <img src="assets/capabilities/temp_setback.svg" width="24"> | Setback Temperature Limit | Heating setback threshold |
+| <img src="assets/capabilities/temp_setback.svg" width="24"> | Heating Setback Delta / MK1 Setback Delta | Temperature reduction values (K) |
+| <img src="assets/capabilities/supply_temp.svg" width="24"> | Supply Temperature Limit | Maximum flow temperature |
+| <img src="assets/capabilities/return_temp.svg" width="24"> | Return Temperature Limit / Min. | Return temperature boundaries |
+| <img src="assets/capabilities/return_temp.svg" width="24"> | Return Temperature Hysteresis | Hysteresis for return temperature control |
+| <img src="assets/capabilities/water.svg" width="24"> | Hot Water Hysteresis | Hysteresis for hot water control |
+| <img src="assets/capabilities/temp_zwe_enable.svg" width="24"> | ZWE Enable Temperature | Enable temperature for 2nd heat source |
+| <img src="assets/capabilities/alarm.svg" width="24"> | Error Alarm | Error active: Yes / No |
+| <img src="assets/capabilities/last_poll.svg" width="24"> | Last Poll | Time of last successful poll (local time) |
+| <img src="assets/capabilities/firmware_version.svg" width="24"> | Firmware Version | Controller software version |
 
 ### Controllable Values
 
@@ -101,7 +112,7 @@ On devices with cooling support (e.g. Novelan WSV 6.2K3M), the **Cooling Operati
 - **Off** – cooling disabled
 - **Automatic** – cooling enabled when outdoor temperature permits
 
-The capability is only displayed when the controller reports that cooling is available (`FreigabKuehl = 1`). Changes are applied immediately and confirmed via a flow trigger.
+The capability is only displayed when the controller reports that cooling is available (`FreigabKuehl = 1`). Cooling capabilities can be hidden via the device settings option **"Hide cooling capabilities"**. Changes are applied immediately and confirmed via a flow trigger.
 
 ---
 
@@ -143,6 +154,24 @@ Timeline entries are written in the Homey interface language (German or English)
 
 ---
 
+## App Settings
+
+### Debug Page
+
+The app settings include a **Debug** tab that shows all raw values and parameters read from the Luxtronik controller:
+
+- Live filter across all keys and values
+- Capability mapping: shows which Homey capability each key is mapped to
+- Entry count for values and parameters
+- App version and poll timestamp
+- **Copy Log** button – exports all data as formatted text for troubleshooting
+
+### Version Info
+
+The **Version** tab in the app settings shows the current app version, SDK, compatibility, protocol, library, author and GitHub link.
+
+---
+
 ## Installation
 
 ### Requirements
@@ -160,17 +189,18 @@ Timeline entries are written in the Homey interface language (German or English)
 
 ### Device Settings
 
-| Setting                             | Default  | Description                                                        |
-|-------------------------------------|----------|--------------------------------------------------------------------|
-| IP Address                          | –        | IP of the Luxtronik controller                                     |
-| Port                                | 8889     | TCP port of the controller                                         |
-| Poll Interval (seconds)             | 60       | How often the heat pump is queried (min. 10 s)                     |
-| Hot Water Boost Duration (minutes)  | 60       | Maximum runtime for both boost modes                               |
-| Poll Timeout (seconds)              | 30       | Time before a non-responding device is marked unavailable          |
-| Watchdog Threshold (× poll interval)| 3        | Missed poll intervals before watchdog triggers                     |
-| Watchdog Check Interval (seconds)   | 60       | How often the watchdog checks for a successful poll                |
-| Enable Power Sensor                 | Off      | Activates estimated watt sensor per heat pump state                |
-| Heating / Hot Water / Standby (W)   | 0        | Required for the automatic kWh energy meter                        |
+| Setting                              | Default  | Description                                                        |
+|--------------------------------------|----------|--------------------------------------------------------------------|
+| IP Address                           | –        | IP of the Luxtronik controller                                     |
+| Port                                 | 8889     | TCP port of the controller                                         |
+| Poll Interval (seconds)              | 60       | How often the heat pump is queried (min. 10 s)                     |
+| Hot Water Boost Duration (minutes)   | 60       | Maximum runtime for both boost modes                               |
+| Poll Timeout (seconds)               | 30       | Time before a non-responding device is marked unavailable          |
+| Watchdog Threshold (× poll interval) | 3        | Missed poll intervals before watchdog triggers                     |
+| Watchdog Check Interval (seconds)    | 60       | How often the watchdog checks for a successful poll                |
+| Enable Power Sensor                  | Off      | Activates estimated watt sensor per heat pump state                |
+| Heating / Hot Water / Standby (W)    | 0        | Required for the automatic kWh energy meter                        |
+| Hide Cooling Capabilities            | Off      | Hides cooling mode, hours, release temp. and inlet temp. from UI   |
 
 ---
 
@@ -265,7 +295,8 @@ Timeline entries are written in the Homey interface language (German or English)
 - The thermostat correction (`target_temperature.heating`) shifts the heating curve by the set value. Positive values → warmer, negative values → cooler.
 - All write operations are sent to the controller immediately.
 - Write protection prevents polling cycles from immediately overwriting manually set values (120s protection window).
-- The cooling mode capability is only shown when the controller reports cooling as available.
+- The cooling mode capability is only shown when the controller reports cooling as available (`FreigabKuehl = 1`).
+- Room temperature capabilities (`measure_temp_room`, `measure_temp_room_target`) are only populated when an RBE room display is physically connected to the controller.
 
 ---
 
