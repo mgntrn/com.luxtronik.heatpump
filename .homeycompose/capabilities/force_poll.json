@@ -1,0 +1,12 @@
+{
+  "type": "boolean",
+  "title": {
+    "en": "Refresh",
+    "de": "Aktualisieren"
+  },
+  "getable": false,
+  "setable": true,
+  "uiComponent": "button",
+  "insights": false,
+  "icon": "/assets/capabilities/force_poll.svg"
+}

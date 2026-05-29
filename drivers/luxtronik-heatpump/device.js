@@ -172,6 +172,7 @@ class LuxtronikHeatpumpDevice extends Device {
       'delta_heating_reduction', 'delta_mk1_reduction',
       'temp_zwe_enable', 'temp_2nd_comp_heating', 'temp_2nd_comp_hotwater',
       'cooling_release_temp_cap', 'cooling_inlet_temp_cap',
+      'heatpump_state_string',
       // Hinweis: cooling_operation_mode, measure_temp_room, measure_temp_suction_air,
       // measure_hours_cooling, measure_power, meter_power werden bedingt hinzugefügt
     ];
@@ -378,6 +379,16 @@ class LuxtronikHeatpumpDevice extends Device {
       }
     });
 
+    // Force-Poll Button: Capability bedingt hinzufügen und Listener registrieren
+    if (this.getSetting('show_force_poll') === true) {
+      if (!this.hasCapability('force_poll')) {
+        try { await this.addCapability('force_poll'); } catch (e) { this.error('addCapability force_poll:', e.message); }
+      }
+      this._registerForcePollListener();
+    } else if (this.hasCapability('force_poll')) {
+      try { await this.removeCapability('force_poll'); } catch (e) { this.error('removeCapability force_poll:', e.message); }
+    }
+
     this._connectPump();
     await this._doPoll();
     this._firstPollDone = true;  // Ab jetzt dürfen onSettings-Handler schreiben
@@ -386,10 +397,11 @@ class LuxtronikHeatpumpDevice extends Device {
 
   async onDeleted() {
     this._stopPolling();
-    if (this._boostTimer)      { clearTimeout(this._boostTimer);      this._boostTimer      = null; }
-    if (this._boostPartyTimer) { clearTimeout(this._boostPartyTimer); this._boostPartyTimer = null; }
-    if (this._watchdogTimer)   { clearInterval(this._watchdogTimer);  this._watchdogTimer   = null; }
-    if (this._pollTimeout)     { clearTimeout(this._pollTimeout);     this._pollTimeout     = null; }
+    if (this._boostTimer)           { clearTimeout(this._boostTimer);           this._boostTimer           = null; }
+    if (this._boostPartyTimer)      { clearTimeout(this._boostPartyTimer);      this._boostPartyTimer      = null; }
+    if (this._watchdogTimer)        { clearInterval(this._watchdogTimer);       this._watchdogTimer        = null; }
+    if (this._pollTimeout)          { clearTimeout(this._pollTimeout);          this._pollTimeout          = null; }
+    if (this._pollAfterWriteTimer)  { clearTimeout(this._pollAfterWriteTimer);  this._pollAfterWriteTimer  = null; }
   }
 
   async onSettings({ newSettings, changedKeys }) {
@@ -615,6 +627,20 @@ class LuxtronikHeatpumpDevice extends Device {
       try { await this.removeCapability('meter_power'); }
       catch (e) { this.error('removeCapability meter_power:', e.message); }
       this._lastPollTime = null;
+    }
+
+    // Force-Poll Button: bei Einstellungsänderung Capability hinzufügen oder entfernen
+    if (changedKeys.includes('show_force_poll')) {
+      if (newSettings.show_force_poll === true) {
+        if (!this.hasCapability('force_poll')) {
+          try { await this.addCapability('force_poll'); } catch (e) { this.error('addCapability force_poll:', e.message); }
+        }
+        this._registerForcePollListener();
+      } else {
+        if (this.hasCapability('force_poll')) {
+          try { await this.removeCapability('force_poll'); } catch (e) { this.error('removeCapability force_poll:', e.message); }
+        }
+      }
     }
 
     this._connectPump();
@@ -883,6 +909,15 @@ class LuxtronikHeatpumpDevice extends Device {
       this._lastState = stateSlug;
     }
 
+    // ── Wärmepumpen-Status als String (für Geräteanzeige / Indicator) ────────
+    // Format: "Standby (63°)" — lokalisierter Status + aktuelle Warmwassertemperatur
+    const hwTemp = this._n(v.temperature_hot_water);
+    const stateLabelStr = (STATE_TIMELINE_LABELS[stateSlug] || {})[this.homey.i18n.getLanguage()] || stateSlug;
+    const stateStringVal = hwTemp !== null
+      ? `${stateLabelStr} (${Math.round(hwTemp)}°)`
+      : stateLabelStr;
+    await this._setIfValid('heatpump_state_string', stateStringVal);
+
     // ── Virtueller Leistungssensor ───────────────────────────────────────────
     // measure_power wird dynamisch hinzugefügt/entfernt je nach Einstellung
     const powerEnabled = this.getSetting('power_sensor_enabled') === true;
@@ -1008,10 +1043,9 @@ class LuxtronikHeatpumpDevice extends Device {
     // Mirror → target_temperature.heating (Thermostat-Widget Heizung Soll)
     await this._setIfValid('target_temperature.heating', heatingCorr);
 
-    // Brauchwasser-Solltemperatur: p.warmwater_temperature oder p.temperature_hot_water_target
-    const wwTarget = p.warmwater_temperature ?? p.temperature_hot_water_target;
+    // Brauchwasser-Solltemperatur: parameter 2 (warmwater_temperature), immer vorhanden
     // Mirror → built-in target_temperature (Thermostat-Widget Hot Water Setpoint)
-    await this._setIfValid('target_temperature', this._n(wwTarget));
+    await this._setIfValid('target_temperature', this._n(p.warmwater_temperature));
 
     // Thermische Desinfektion Soll (TDI): parameter 47 = temperature_hot_water_limit
     const tdiVal = this._n(p.temperature_hot_water_limit);
@@ -1144,10 +1178,12 @@ class LuxtronikHeatpumpDevice extends Device {
   async _setWarmwaterTargetTemperature(value) {
     const clamped = Math.min(65, Math.max(30, value));
     this.log(`Setze Brauchwasser Soll-Temperatur: ${clamped} °C`);
-    // Sofort UI-Wert setzen, dann Write-Schutz, dann senden
     await this.setCapabilityValue('target_temperature', clamped).catch(() => {});
     this._setWriteProtect('target_temperature', 120000);
+    // parameter 2 (warmwater_target_temperature) = Standard WW-Sollwert
     await this._write('warmwater_target_temperature', clamped);
+    // parameter 105 (temperature_hot_water_target) = alternativer WW-Sollwert auf manchen Firmware-Varianten
+    await this._write('temperature_hot_water_target', clamped).catch(() => {});
     this.log(`Brauchwasser Soll-Temperatur erfolgreich gesendet: ${clamped} °C`);
   }
 
@@ -1335,7 +1371,9 @@ class LuxtronikHeatpumpDevice extends Device {
       this.log(`_writeRaw: parameter[${parameterIndex}] = ${setValue} (Polling pausiert)`);
       setTimeout(() => {
         this._pump._startWrite(parameterIndex, setValue, (err, res) => {
+          // Polling nach dem Write immer neu starten + 3s verzögerter Bestätigungs-Poll
           this._startPolling();
+          this._schedulePollAfterWrite();
           if (err) {
             const msg = (err && err.message) ? err.message : String(err);
             this.error(`WriteRaw-Fehler (param${parameterIndex}=${setValue}): ${msg}`);
@@ -1438,6 +1476,20 @@ class LuxtronikHeatpumpDevice extends Device {
     this.log(`Thermische Desinfektion Dauerbetrieb erfolgreich gesetzt: ${value}`);
   }
 
+  // ─── Force Poll ────────────────────────────────────────────────────────────
+
+  _registerForcePollListener() {
+    if (!this.hasCapability('force_poll')) return;
+    try {
+      this.registerCapabilityListener('force_poll', async () => {
+        this.log('Force-Poll ausgelöst via Capability');
+        await this._doPoll();
+      });
+    } catch (e) {
+      // Listener bereits registriert — ignorieren
+    }
+  }
+
   // ─── Low-level Write ───────────────────────────────────────────────────────
 
   // Gibt true zurück wenn meter_power aktiv sein soll:
@@ -1448,6 +1500,16 @@ class LuxtronikHeatpumpDevice extends Device {
       && Number(s.power_heating) > 0
       && Number(s.power_hotwater) > 0
       && Number(s.power_standby) > 0;
+  }
+
+  // Debounced Poll nach Write: mehrere schnelle Writes lösen nur einen Poll aus
+  _schedulePollAfterWrite(delayMs = 3000) {
+    if (this._pollAfterWriteTimer) clearTimeout(this._pollAfterWriteTimer);
+    this._pollAfterWriteTimer = setTimeout(() => {
+      this._pollAfterWriteTimer = null;
+      this.log('Bestätigungs-Poll nach Write');
+      this._doPoll();
+    }, delayMs);
   }
 
   _write(parameter, value) {
@@ -1461,8 +1523,9 @@ class LuxtronikHeatpumpDevice extends Device {
       // Kurz warten bis eine laufende Poll-Verbindung geschlossen ist
       setTimeout(() => {
         this._pump.write(parameter, value, (err, res) => {
-          // Polling nach dem Write immer neu starten
+          // Polling nach dem Write immer neu starten + 3s verzögerter Bestätigungs-Poll
           this._startPolling();
+          this._schedulePollAfterWrite();
 
           if (err) {
             const msg = (err && err.message) ? err.message : String(err);

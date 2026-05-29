@@ -1,5 +1,58 @@
 # Changelog
 
+## [2.0.41] - 2026-05-29
+
+### Added
+- **Heat Pump State indicator** (`heatpump_state_string`): new hidden string capability that combines the current heat pump state and hot water temperature into a single text value (e.g. `Standby (63°)` / `Hot Water (51°)`). Not shown on the device tile but selectable as the **device indicator** under Device → ⚙️ → Device display. Adapts to the Homey interface language (DE/EN).
+
+---
+
+## [2.0.40] - 2026-05-29
+
+### Added
+- **Refresh button** (`force_poll`): optional button capability that triggers an immediate poll of the heat pump data. Enable via Device Settings → General → "Show Refresh Button" (default: off).
+
+### Improved
+- **Automatic confirmation poll after writes:** after any write operation (mode change, temperature adjustment, button press), a debounced poll is automatically triggered 3 seconds later. This updates all capability values without waiting for the next poll interval. Multiple rapid writes are debounced into a single confirmation poll.
+
+---
+
+## [2.0.39] - 2026-05-29
+
+### Fixed
+- **Hot water target temperature write compatibility:** the write now targets both parameter 2 (`warmwater_target_temperature`) and parameter 105 (`temperature_hot_water_target`) to ensure the setpoint is correctly applied on all Luxtronik firmware variants, including Alpha Innotec SWCV devices where only parameter 105 is effective.
+
+---
+
+## [2.0.38] - 2026-05-29
+
+### Updated
+- **Custom SVG icons** for capability tiles: return temperature, supply temperature, outdoor temperatures (min./max.), heating curve (endpoint + offset, MK1), setback (limit + deltas), ZWE enable temperature, heat pump state, and heating status now each have a dedicated icon.
+- `2nd Compressor` capabilities hidden from device tile (`uiComponent: null`) — still available in flows.
+
+---
+
+## [2.0.37] - 2026-05-28
+
+### Fixed
+- Missing capabilities (`warmwater_operation_mode`, `alarm_generic`, `measure_volume_flow`, `meter_energy_hotwater`, `meter_energy_total`, `measure_hours_compressor`, `measure_hours_hotwater`) are now automatically added to existing device instances on app start.
+
+### Added
+- **Hide cooling capabilities** option in device settings (Kühlung group): hides cooling operation mode, cooling hours, cooling release temperature and cooling inlet temperature from the device tile. Useful when cooling is supported but not used.
+
+---
+
+## [2.0.36] - 2026-05-27
+
+### Added
+- **Debug page** in app settings: shows all raw values and parameters from the Luxtronik controller with capability mapping, live filter, entry count, app version display, and Copy Log export for troubleshooting.
+- **Version tab** in app settings: app version, SDK, compatibility, protocol, library, author and GitHub link.
+
+### Fixed
+- Room temperature (`measure_temp_room`) and room target temperature (`measure_temp_room_target`) now correctly read from the controller when an RBE room display is connected (corrected library key `temperaturw_RFV`).
+
+---
+
 ## [2.0.34] - 2026-05-02
 
 ### Added

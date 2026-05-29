@@ -72,6 +72,13 @@ This app communicates with the **Luxtronik 2.0 / 2.1** controller, which is buil
 | **Hot Water Boost (Party)**        | Toggle – party mode, automatic stop                          |
 | **Thermal Disinfection**           | Toggle – continuous mode, auto-stop at target temperature    |
 | **TDI Setpoint**                   | Target temperature for thermal disinfection: 50–80 °C        |
+| **Refresh** *(optional)*           | Button – triggers an immediate poll (enable in device settings) |
+
+### Device Indicator
+
+The `heatpump_state_string` capability combines the heat pump state and the current hot water temperature into a single text value (e.g. `Standby (63°)` or `Hot Water (51°)`). It is hidden from the device tile but can be selected as the **device indicator** (the value shown below the device name in the Homey device list):
+
+**Device → ⚙️ → Device display → Heat Pump State**
 
 ---
 
@@ -191,6 +198,7 @@ The **Version** tab in the app settings shows the current app version, SDK, comp
 
 | Setting                              | Default  | Description                                                        |
 |--------------------------------------|----------|--------------------------------------------------------------------|
+| Show Refresh Button                  | Off      | Shows a Refresh button on the device tile for immediate polling    |
 | IP Address                           | –        | IP of the Luxtronik controller                                     |
 | Port                                 | 8889     | TCP port of the controller                                         |
 | Poll Interval (seconds)              | 60       | How often the heat pump is queried (min. 10 s)                     |
@@ -293,7 +301,7 @@ The **Version** tab in the app settings shows the current app version, SDK, comp
 > ⚠️ **Caution:** Incorrect settings can put the heat pump into an error state. Only make changes if the function of the parameter is known.
 
 - The thermostat correction (`target_temperature.heating`) shifts the heating curve by the set value. Positive values → warmer, negative values → cooler.
-- All write operations are sent to the controller immediately.
+- All write operations are sent to the controller immediately. A confirmation poll is automatically triggered 3 seconds after each write to reflect the updated values without waiting for the next poll interval.
 - Write protection prevents polling cycles from immediately overwriting manually set values (120s protection window).
 - The cooling mode capability is only shown when the controller reports cooling as available (`FreigabKuehl = 1`).
 - Room temperature capabilities (`measure_temp_room`, `measure_temp_room_target`) are only populated when an RBE room display is physically connected to the controller.

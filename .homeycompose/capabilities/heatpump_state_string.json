@@ -1,0 +1,12 @@
+{
+  "type": "string",
+  "title": {
+    "en": "Heat Pump State",
+    "de": "Wärmepumpen Status"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": null,
+  "insights": false,
+  "icon": "/assets/capabilities/heatpump_state.svg"
+}

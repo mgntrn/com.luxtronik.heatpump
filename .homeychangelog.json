@@ -135,5 +135,17 @@
   "2.0.38": {
     "en": "Updated: Custom SVG icons for capability tiles — return temperature, supply temperature, outdoor temperatures (min./max.), heating curve, setback, ZWE enable temperature, heat pump state and heating status now each have a dedicated icon.",
     "de": "Aktualisiert: Eigene SVG-Icons für Capability-Kacheln — Rücklauftemperatur, Vorlauftemperatur, Aussentemperaturen (Min./Max.), Heizkurve, Absenkung, ZWE-Freigabetemperatur, Wärmepumpen-Status und Heizung-Status haben jetzt jeweils ein eigenes Icon."
+  },
+  "2.0.39": {
+    "en": "Fixed: Hot water target temperature write now correctly targets both parameter 2 (warmwater_target_temperature) and parameter 105 (temperature_hot_water_target) to ensure compatibility with all Luxtronik firmware variants including Alpha Innotec SWCV.",
+    "de": "Behoben: Schreiben der Brauchwasser-Solltemperatur schreibt jetzt auf Parameter 2 (warmwater_target_temperature) und Parameter 105 (temperature_hot_water_target), um Kompatibilität mit allen Luxtronik-Firmware-Varianten inkl. Alpha Innotec SWCV sicherzustellen."
+  },
+  "2.0.40": {
+    "en": "New: Optional Refresh button capability — shows a refresh button on the device tile to trigger an immediate poll (enable in device settings). Improved: After any write (mode change, temperature, button), a confirmation poll is automatically triggered 3 seconds later to update all values without waiting for the next poll interval.",
+    "de": "Neu: Optionaler Aktualisieren-Button als Capability — zeigt einen Refresh-Button auf der Gerätekachel für sofortige Datenabfrage (aktivierbar in den Geräteeinstellungen). Verbessert: Nach jedem Schreibvorgang (Betriebsart, Temperatur, Button) wird automatisch 3 Sekunden später ein Bestätigungs-Poll ausgelöst, ohne auf das nächste Abfrageintervall zu warten."
+  },
+  "2.0.41": {
+    "en": "New: Heat Pump State string capability (heatpump_state_string) — shows heat pump state and current hot water temperature as a combined text (e.g. 'Standby (63°)'). Hidden from the device tile but selectable as device indicator under device settings.",
+    "de": "Neu: Wärmepumpen-Status als Text-Capability (heatpump_state_string) — zeigt den Betriebsstatus und die aktuelle Warmwassertemperatur als kombinierten Text (z.B. 'Standby (63°)'). Unsichtbar auf der Gerätekachel, aber als Geräteanzeige unter den Geräteeinstellungen wählbar."
   }
 }

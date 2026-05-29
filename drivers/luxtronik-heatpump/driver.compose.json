@@ -6,6 +6,7 @@
   "class": "heater",
   "capabilities": [
     "heatpump_state",
+    "heatpump_state_string",
     "heating_state_string",
     "hotwater_state_string",
     "warmwater_operation_mode",
@@ -239,6 +240,28 @@
     }
   ],
   "settings": [
+    {
+      "type": "group",
+      "label": {
+        "en": "General",
+        "de": "Allgemein"
+      },
+      "children": [
+        {
+          "id": "show_force_poll",
+          "type": "checkbox",
+          "label": {
+            "en": "Show Refresh button",
+            "de": "Aktualisieren-Button anzeigen"
+          },
+          "value": false,
+          "hint": {
+            "en": "Shows a Refresh button on the device tile that triggers an immediate poll of the heat pump data.",
+            "de": "Zeigt einen Aktualisieren-Button auf der Gerätekachel, der sofort eine neue Abfrage der Wärmepumpendaten auslöst."
+          }
+        }
+      ]
+    },
     {
       "type": "group",
       "label": {
