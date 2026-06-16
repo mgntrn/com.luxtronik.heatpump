@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.luxtronik.heatpump",
-  "version": "2.0.44",
+  "version": "2.0.45",
   "compatibility": ">=5.0.0",
   "sdk": 3,
   "name": {
@@ -2138,16 +2138,49 @@
           },
           "children": [
             {
-              "id": "hide_cooling",
-              "type": "checkbox",
+              "id": "cooling_visibility",
+              "type": "radio",
               "label": {
-                "en": "Hide cooling capabilities",
-                "de": "Kühlungs-Capabilities ausblenden"
+                "en": "Cooling capabilities visibility",
+                "de": "Anzeige Kühlungs-Capabilities",
+                "nl": "Zichtbaarheid koelingsmogelijkheden",
+                "fr": "Affichage des fonctions de refroidissement"
               },
-              "value": false,
+              "value": "auto",
+              "values": [
+                {
+                  "id": "auto",
+                  "label": {
+                    "en": "Auto (show when controller enables cooling)",
+                    "de": "Automatisch (anzeigen wenn Controller Kühlung freigibt)",
+                    "nl": "Automatisch (tonen als controller koeling vrijgeeft)",
+                    "fr": "Auto (afficher si le contrôleur active le refroidissement)"
+                  }
+                },
+                {
+                  "id": "show",
+                  "label": {
+                    "en": "Always show",
+                    "de": "Immer anzeigen",
+                    "nl": "Altijd tonen",
+                    "fr": "Toujours afficher"
+                  }
+                },
+                {
+                  "id": "hide",
+                  "label": {
+                    "en": "Always hide",
+                    "de": "Immer ausblenden",
+                    "nl": "Altijd verbergen",
+                    "fr": "Toujours masquer"
+                  }
+                }
+              ],
               "hint": {
-                "en": "Hides cooling operation mode, cooling hours, cooling release temperature and cooling inlet temperature from the device. Useful if your heat pump supports cooling but you don't use it.",
-                "de": "Blendet Kühlbetrieb, Betriebsstunden Kühlung, Kühlung Freigabe-Temperatur und Kühlung Einlauftemperatur aus. Sinnvoll wenn die Wärmepumpe Kühlung unterstützt, diese aber nicht genutzt wird."
+                "en": "'Auto' shows cooling only when the controller reports cooling as enabled (FreigabKuehl=1). Use 'Always show' if cooling disappears from the tile even though your heat pump supports it. Use 'Always hide' if you never use cooling.",
+                "de": "'Automatisch' zeigt Kühlung nur wenn der Controller Kühlung freigibt (FreigabKuehl=1). 'Immer anzeigen' verwenden wenn die Kühlung auf der Kachel verschwindet, obwohl die Wärmepumpe Kühlung unterstützt. 'Immer ausblenden' wenn Kühlung nie genutzt wird.",
+                "nl": "'Automatisch' toont koeling alleen als de controller dit vrijgeeft. Gebruik 'Altijd tonen' als koeling verdwijnt van de tegel terwijl uw warmtepomp koeling ondersteunt.",
+                "fr": "'Auto' affiche le refroidissement uniquement si le contrôleur le libère. Utilisez 'Toujours afficher' si le refroidissement disparaît de la tuile malgré le support matériel."
               }
             },
             {

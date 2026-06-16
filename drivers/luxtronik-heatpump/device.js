@@ -197,6 +197,12 @@ class LuxtronikHeatpumpDevice extends Device {
         catch (e) { this.error(`Capability ${cap} konnte nicht hinzugefügt werden:`, e.message); }
       }
     }
+    // ── Settings-Migration: hide_cooling → cooling_visibility ───────────────────
+    if (this.getSetting('hide_cooling') === true && this.getSetting('cooling_visibility') === 'auto') {
+      this.log('Migriere hide_cooling → cooling_visibility: hide');
+      try { await this.setSettings({ cooling_visibility: 'hide' }); } catch (e) { this.error('Settings-Migration hide_cooling fehlgeschlagen:', e.message); }
+    }
+
     // ── Cleanup: unerwünschte Capabilities entfernen ────────────────────────────
     const REMOVE_CAPABILITIES = ['thermal_disinfection', 'warmwater_target_temperature', 'heating_temperature_correction', 'target_temperature.tdi'];
     for (const cap of REMOVE_CAPABILITIES) {
@@ -882,12 +888,14 @@ class LuxtronikHeatpumpDevice extends Device {
     await this._setIfValid('measure_hours_heating',    this._n(v.hours_heating));
     await this._setIfValid('measure_hours_hotwater',   this._n(v.hours_warmwater));
 
-    // ── Kühlung (nur wenn Kühlung freigegeben UND nicht ausgeblendet) ──────────
-    // FreigabKuehl: 0 = gesperrt, 1 = freigegeben
-    // hide_cooling: true = alle Kühlungs-Capabilities ausblenden
-    const coolingEnabled = v.FreigabKuehl === 1;
-    const hideCooling    = this.getSetting('hide_cooling') === true;
-    const showCooling    = coolingEnabled && !hideCooling;
+    // ── Kühlung ───────────────────────────────────────────────────────────────
+    // FreigabKuehl: 0 = gesperrt, 1 = freigegeben (Controller-Flag)
+    // cooling_visibility: 'auto' | 'show' | 'hide'
+    const coolingDetected    = v.FreigabKuehl === 1;
+    const coolingVisibility  = this.getSetting('cooling_visibility') ?? 'auto';
+    const showCooling =
+      coolingVisibility === 'show' ||
+      (coolingVisibility === 'auto' && coolingDetected);
     await this._setCapabilityConditional('measure_hours_cooling',   this._n(v.hours_cooling), showCooling);
     await this._setCapabilityConditional('cooling_release_temp_cap', this._n(p.cooling_release_temperature), showCooling);
     await this._setCapabilityConditional('cooling_inlet_temp_cap',   this._n(p.cooling_inlet_temp),          showCooling);
