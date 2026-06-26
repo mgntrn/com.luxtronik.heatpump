@@ -240,6 +240,7 @@ class LuxtronikHeatpumpDevice extends Device {
     this._lastWarmwaterMode = null;
     this._lastCoolingMode   = null;
     this._lastErrorState    = false;
+    this._lastRoomTemp      = null;
     // Timestamp map: nach einem Write diese Capability für 2 Polls nicht überschreiben
     this._writeProtectUntil = {};
     // Erst nach dem ersten erfolgreichen Poll dürfen Einstellungen an den Controller
@@ -271,6 +272,10 @@ class LuxtronikHeatpumpDevice extends Device {
     this._triggerOutdoorTempDroppedBelow  = this.homey.flow.getDeviceTriggerCard('outdoor_temp_dropped_below')
       .registerRunListener((args, state) => state.temperature <= args.temperature);
     this._triggerOutdoorTempRoseAbove     = this.homey.flow.getDeviceTriggerCard('outdoor_temp_rose_above')
+      .registerRunListener((args, state) => state.temperature >= args.temperature);
+    this._triggerRoomTempDroppedBelow     = this.homey.flow.getDeviceTriggerCard('room_temp_dropped_below')
+      .registerRunListener((args, state) => state.temperature <= args.temperature);
+    this._triggerRoomTempRoseAbove        = this.homey.flow.getDeviceTriggerCard('room_temp_rose_above')
       .registerRunListener((args, state) => state.temperature >= args.temperature);
 
     // Flow-Bedingungen
@@ -318,6 +323,18 @@ class LuxtronikHeatpumpDevice extends Device {
     this.homey.flow.getConditionCard('outdoor_temp_below')
       .registerRunListener((args) => {
         const temp = this.getCapabilityValue('measure_temp_outdoor');
+        return temp !== null && temp < args.temperature;
+      });
+
+    this.homey.flow.getConditionCard('room_temp_above')
+      .registerRunListener((args) => {
+        const temp = this.hasCapability('measure_temp_room') ? this.getCapabilityValue('measure_temp_room') : null;
+        return temp !== null && temp > args.temperature;
+      });
+
+    this.homey.flow.getConditionCard('room_temp_below')
+      .registerRunListener((args) => {
+        const temp = this.hasCapability('measure_temp_room') ? this.getCapabilityValue('measure_temp_room') : null;
         return temp !== null && temp < args.temperature;
       });
 
@@ -887,6 +904,18 @@ class LuxtronikHeatpumpDevice extends Device {
     if (roomTempTarget === null || roomTempTarget <= 0) roomTempTarget = this._n(v.Temperatur_RFV2);
     await this._setCapabilityConditional('measure_temp_room',        roomTemp,       roomTemp !== null && roomTemp > 0);
     await this._setCapabilityConditional('measure_temp_room_target', roomTempTarget, roomTempTarget !== null && roomTempTarget > 0);
+    // Raumtemperatur-Flows: Trigger bei Anstieg/Abfall (nur wenn Raumsensor aktiv, Wert > 0).
+    // Der aktuelle Wert wird als state mitgegeben; der RunListener prüft die Schwelle.
+    if (roomTemp !== null && roomTemp > 0) {
+      if (this._lastRoomTemp !== null) {
+        if (roomTemp < this._lastRoomTemp) {
+          await this._triggerRoomTempDroppedBelow.trigger(this, {}, { temperature: roomTemp }).catch(() => {});
+        } else if (roomTemp > this._lastRoomTemp) {
+          await this._triggerRoomTempRoseAbove.trigger(this, {}, { temperature: roomTemp }).catch(() => {});
+        }
+      }
+      this._lastRoomTemp = roomTemp;
+    }
 
     // ── Volumenstrom ─────────────────────────────────────────────────────────
     // Durchfluss_WQ: Rohwert vom Controller direkt in l/h (keine Umrechnung nötig)
