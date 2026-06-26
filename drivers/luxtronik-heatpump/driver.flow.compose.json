@@ -197,6 +197,64 @@
           }
         }
       ]
+    },
+    {
+      "id": "room_temp_dropped_below",
+      "title": {
+        "en": "Room temperature dropped below",
+        "de": "Raumtemperatur fiel unter",
+        "nl": "Ruimtetemperatuur daalde onder"
+      },
+      "titleFormatted": {
+        "en": "Room temperature dropped below [[temperature]] °C",
+        "de": "Raumtemperatur fiel unter [[temperature]] °C",
+        "nl": "Ruimtetemperatuur daalde onder [[temperature]] °C"
+      },
+      "args": [
+        {
+          "name": "temperature",
+          "type": "number",
+          "title": {
+            "en": "Temperature (°C)",
+            "de": "Temperatur (°C)",
+            "nl": "Temperatuur (°C)"
+          },
+          "placeholder": {
+            "en": "e.g. 18",
+            "de": "z.B. 18",
+            "nl": "bijv. 18"
+          }
+        }
+      ]
+    },
+    {
+      "id": "room_temp_rose_above",
+      "title": {
+        "en": "Room temperature rose above",
+        "de": "Raumtemperatur stieg über",
+        "nl": "Ruimtetemperatuur steeg boven"
+      },
+      "titleFormatted": {
+        "en": "Room temperature rose above [[temperature]] °C",
+        "de": "Raumtemperatur stieg über [[temperature]] °C",
+        "nl": "Ruimtetemperatuur steeg boven [[temperature]] °C"
+      },
+      "args": [
+        {
+          "name": "temperature",
+          "type": "number",
+          "title": {
+            "en": "Temperature (°C)",
+            "de": "Temperatur (°C)",
+            "nl": "Temperatuur (°C)"
+          },
+          "placeholder": {
+            "en": "e.g. 22",
+            "de": "z.B. 22",
+            "nl": "bijv. 22"
+          }
+        }
+      ]
     }
   ],
   "conditions": [
@@ -572,6 +630,64 @@
           "placeholder": {
             "en": "e.g. 0",
             "de": "z.B. 0"
+          }
+        }
+      ]
+    },
+    {
+      "id": "room_temp_above",
+      "title": {
+        "en": "Room temperature is above",
+        "de": "Raumtemperatur ist über",
+        "nl": "Ruimtetemperatuur is boven"
+      },
+      "titleFormatted": {
+        "en": "Room temperature !{{is|is not}} above [[temperature]] °C",
+        "de": "Raumtemperatur ist !{{über|nicht über}} [[temperature]] °C",
+        "nl": "Ruimtetemperatuur is !{{boven|niet boven}} [[temperature]] °C"
+      },
+      "args": [
+        {
+          "name": "temperature",
+          "type": "number",
+          "title": {
+            "en": "Temperature (°C)",
+            "de": "Temperatur (°C)",
+            "nl": "Temperatuur (°C)"
+          },
+          "placeholder": {
+            "en": "e.g. 21",
+            "de": "z.B. 21",
+            "nl": "bijv. 21"
+          }
+        }
+      ]
+    },
+    {
+      "id": "room_temp_below",
+      "title": {
+        "en": "Room temperature is below",
+        "de": "Raumtemperatur ist unter",
+        "nl": "Ruimtetemperatuur is onder"
+      },
+      "titleFormatted": {
+        "en": "Room temperature !{{is|is not}} below [[temperature]] °C",
+        "de": "Raumtemperatur ist !{{unter|nicht unter}} [[temperature]] °C",
+        "nl": "Ruimtetemperatuur is !{{onder|niet onder}} [[temperature]] °C"
+      },
+      "args": [
+        {
+          "name": "temperature",
+          "type": "number",
+          "title": {
+            "en": "Temperature (°C)",
+            "de": "Temperatur (°C)",
+            "nl": "Temperatuur (°C)"
+          },
+          "placeholder": {
+            "en": "e.g. 21",
+            "de": "z.B. 21",
+            "nl": "bijv. 21"
           }
         }
       ]
