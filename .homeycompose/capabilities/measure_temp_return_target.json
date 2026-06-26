@@ -3,7 +3,8 @@
   "title": {
     "en": "Return Target Temperature",
     "de": "Rücklauf Soll-Temperatur",
-    "nl": "Gewenste retourtemperatuur"
+    "nl": "Gewenste retourtemperatuur",
+    "fr": "Consigne retour"
   },
   "units": {
     "en": "°C",

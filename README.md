@@ -132,7 +132,15 @@ On devices with cooling support (e.g. Novelan WSV 6.2K3M), the **Cooling Operati
 - **Off** – cooling disabled
 - **Automatic** – cooling enabled when outdoor temperature permits
 
-The capability is only displayed when the controller reports that cooling is available (`FreigabKuehl = 1`). Cooling capabilities can be hidden via the device settings option **"Hide cooling capabilities"**. Changes are applied immediately and confirmed via a flow trigger.
+The visibility of cooling capabilities is controlled via the device setting **"Cooling capabilities visibility"**:
+
+| Option | Behaviour |
+|--------|-----------|
+| **Auto** *(default)* | Show when the controller reports cooling as available (`FreigabKuehl = 1`) |
+| **Always show** | Always visible, regardless of `FreigabKuehl` — useful when cooling disappears from the tile after the cooling season ends |
+| **Always hide** | Never visible — useful if your heat pump supports cooling but you don't use it |
+
+Changes are applied immediately. On some controllers (e.g. MSW2-6S), the heat pump state is also automatically corrected: when `FreigabKuehl = 1` but the controller still reports state3=0 ("Heating"), the app overrides it to "Cooling".
 
 ---
 
@@ -236,7 +244,7 @@ Homey automatically uses the language matching the user's Homey interface langua
 | Watchdog Check Interval (seconds)    | 60       | How often the watchdog checks for a successful poll                |
 | Enable Power Sensor                  | Off      | Activates estimated watt sensor per heat pump state                |
 | Heating / Hot Water / Standby (W)    | 0        | Required for the automatic kWh energy meter                        |
-| Hide Cooling Capabilities            | Off      | Hides cooling mode, hours, release temp. and inlet temp. from UI   |
+| Cooling Capabilities Visibility      | Auto     | Auto / Always show / Always hide — controls cooling capabilities   |
 
 ---
 
@@ -259,6 +267,8 @@ Homey automatically uses the language matching the user's Homey interface langua
 | Device Available                           | –          | When connection is restored                   |
 | Outdoor Temperature Dropped Below … °C    | Threshold  | Threshold comparison with current value       |
 | Outdoor Temperature Rose Above … °C       | Threshold  | Threshold comparison with current value       |
+| Room Temperature Dropped Below … °C       | Threshold  | Only when RBE room display is connected       |
+| Room Temperature Rose Above … °C          | Threshold  | Only when RBE room display is connected       |
 
 ### Conditions
 
@@ -272,6 +282,8 @@ Homey automatically uses the language matching the user's Homey interface langua
 | Hot Water Status Is …                     | Dropdown (4 values)    |
 | Outdoor Temperature Is Above … °C         | Number                 |
 | Outdoor Temperature Is Below … °C         | Number                 |
+| Room Temperature Is Above … °C            | Number                 |
+| Room Temperature Is Below … °C            | Number                 |
 | Thermal Disinfection Is Active            | –                      |
 | Hot Water Boost (Auxiliary) Is Active     | –                      |
 | Hot Water Boost (Party) Is Active         | –                      |
@@ -331,7 +343,7 @@ Homey automatically uses the language matching the user's Homey interface langua
 - The thermostat correction (`target_temperature.heating`) shifts the heating curve by the set value. Positive values → warmer, negative values → cooler.
 - All write operations are sent to the controller immediately. A confirmation poll is automatically triggered 3 seconds after each write to reflect the updated values without waiting for the next poll interval.
 - Write protection prevents polling cycles from immediately overwriting manually set values (120s protection window).
-- The cooling mode capability is only shown when the controller reports cooling as available (`FreigabKuehl = 1`).
+- The cooling mode capability visibility is configurable: Auto (based on `FreigabKuehl`), Always show, or Always hide.
 - Room temperature capabilities (`measure_temp_room`, `measure_temp_room_target`) are only populated when an RBE room display is physically connected to the controller.
 
 ---
@@ -366,3 +378,4 @@ This app was developed entirely with the help of **Claude (Anthropic AI)**.
 - [coolchip/luxtronik2](https://github.com/coolchip/luxtronik2) (npm package)
 - [BenPru/luxtronik](https://github.com/BenPru/luxtronik) (Home Assistant integration)
 - [Bouni/luxtronik](https://github.com/Bouni/luxtronik)
+- [@mgntrn](https://github.com/mgntrn) — room temperature firmware fix, cooling state detection, room temperature flow cards, Dutch translations

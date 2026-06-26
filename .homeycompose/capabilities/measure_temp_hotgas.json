@@ -3,7 +3,8 @@
   "title": {
     "en": "Hot Gas Temperature",
     "de": "Heissgastemperatur",
-    "nl": "Heetgastemperatuur"
+    "nl": "Heetgastemperatuur",
+    "fr": "Température gaz chaud"
   },
   "units": {
     "en": "°C",

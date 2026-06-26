@@ -3,7 +3,8 @@
   "title": {
     "en": "Hot Water Temperature",
     "de": "Warmwassertemperatur",
-    "nl": "Warmwatertemperatuur"
+    "nl": "Warmwatertemperatuur",
+    "fr": "Température eau chaude"
   },
   "units": {
     "en": "°C",

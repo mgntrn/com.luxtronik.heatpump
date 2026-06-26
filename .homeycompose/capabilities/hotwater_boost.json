@@ -3,7 +3,8 @@
   "title": {
     "en": "Hot Water Boost (Auxiliary Heating)",
     "de": "Brauchwasser Schnellladung (Zuheizung)",
-    "nl": "Warmwater snellading (bijverwarming)"
+    "nl": "Warmwater snellading (bijverwarming)",
+    "fr": "Boost eau chaude"
   },
   "getable": true,
   "setable": true,

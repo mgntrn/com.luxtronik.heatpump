@@ -3,7 +3,8 @@
   "title": {
     "en": "Return Temperature Limit",
     "de": "Rücklauftemperatur-Grenze",
-    "nl": "Retourtemperatuur grens"
+    "nl": "Retourtemperatuur grens",
+    "fr": "Limite température retour"
   },
   "units": {
     "en": "°C",

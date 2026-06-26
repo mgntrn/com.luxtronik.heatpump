@@ -3,7 +3,8 @@
   "title": {
     "en": "Heating Curve Offset",
     "de": "Heizkurve Parallelverschiebung",
-    "nl": "Stooklijn parallelverschuiving"
+    "nl": "Stooklijn parallelverschuiving",
+    "fr": "Décalage courbe de chauffe"
   },
   "units": {
     "en": "°C",

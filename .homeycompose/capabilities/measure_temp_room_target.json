@@ -3,7 +3,8 @@
   "title": {
     "en": "Room Target Temperature",
     "de": "Raumtemperatur Soll",
-    "nl": "Gewenste ruimtetemperatuur"
+    "nl": "Gewenste ruimtetemperatuur",
+    "fr": "Consigne température ambiante"
   },
   "units": {
     "en": "°C",

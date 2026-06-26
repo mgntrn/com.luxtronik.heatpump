@@ -3,7 +3,8 @@
   "title": {
     "en": "Supply Temperature Limit",
     "de": "Vorlauftemperatur-Grenze",
-    "nl": "Aanvoertemperatuur grens"
+    "nl": "Aanvoertemperatuur grens",
+    "fr": "Limite température départ"
   },
   "units": {
     "en": "°C",

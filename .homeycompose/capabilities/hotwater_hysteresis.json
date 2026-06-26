@@ -3,7 +3,8 @@
   "title": {
     "en": "Hot Water Hysteresis",
     "de": "Warmwasser-Hysterese",
-    "nl": "Warmwater hysterese"
+    "nl": "Warmwater hysterese",
+    "fr": "Hystérésis eau chaude"
   },
   "units": {
     "en": "K",

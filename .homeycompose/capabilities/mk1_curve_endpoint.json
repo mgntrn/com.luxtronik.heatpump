@@ -3,7 +3,8 @@
   "title": {
     "en": "MK1 Curve Endpoint",
     "de": "MK1 Kurve Endpunkt",
-    "nl": "MK1 stooklijn eindpunt"
+    "nl": "MK1 stooklijn eindpunt",
+    "fr": "Point final courbe MK1"
   },
   "units": {
     "en": "°C",

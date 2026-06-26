@@ -3,7 +3,8 @@
   "title": {
     "en": "2nd Compressor Heating Temp.",
     "de": "2. Verdichter Aussentemp. Heizen",
-    "nl": "2e compressor temp. verwarmen"
+    "nl": "2e compressor temp. verwarmen",
+    "fr": "2e compresseur chauffage"
   },
   "units": {
     "en": "°C",

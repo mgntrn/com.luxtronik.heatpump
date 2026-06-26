@@ -3,7 +3,8 @@
   "title": {
     "en": "Return Temperature Hysteresis",
     "de": "Rücklauf-Hysterese",
-    "nl": "Retourtemperatuur hysterese"
+    "nl": "Retourtemperatuur hysterese",
+    "fr": "Hystérésis retour"
   },
   "units": {
     "en": "K",

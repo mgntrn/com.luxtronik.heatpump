@@ -3,7 +3,8 @@
   "title": {
     "en": "Hot Water Target Temperature",
     "de": "Brauchwasser Soll-Temperatur",
-    "nl": "Gewenste warmwatertemperatuur"
+    "nl": "Gewenste warmwatertemperatuur",
+    "fr": "Consigne eau chaude"
   },
   "units": {
     "en": "°C",

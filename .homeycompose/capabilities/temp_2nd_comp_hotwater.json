@@ -3,7 +3,8 @@
   "title": {
     "en": "2nd Compressor Hot Water Temp.",
     "de": "2. Verdichter Vorlauftemp. Warmwasser",
-    "nl": "2e compressor temp. warmwater"
+    "nl": "2e compressor temp. warmwater",
+    "fr": "2e compresseur eau chaude"
   },
   "units": {
     "en": "°C",

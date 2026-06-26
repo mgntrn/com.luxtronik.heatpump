@@ -3,7 +3,8 @@
   "title": {
     "en": "Max. Outdoor Temperature",
     "de": "Max. Aussentemperatur",
-    "nl": "Max. buitentemperatuur"
+    "nl": "Max. buitentemperatuur",
+    "fr": "Température extérieure max."
   },
   "units": {
     "en": "°C",

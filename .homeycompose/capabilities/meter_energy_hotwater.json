@@ -3,7 +3,8 @@
   "title": {
     "en": "Energy Hot Water",
     "de": "Energie Brauchwasser",
-    "nl": "Energie warmwater"
+    "nl": "Energie warmwater",
+    "fr": "Énergie eau chaude"
   },
   "units": {
     "en": "kWh",

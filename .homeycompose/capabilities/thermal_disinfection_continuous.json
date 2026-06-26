@@ -3,7 +3,8 @@
   "title": {
     "en": "Thermal Disinfection (after next hot water cycle)",
     "de": "Thermische Desinfektion (nach nächster Warmwasserbereitung)",
-    "nl": "Thermische desinfectie (na volgende warmwaterbereiding)"
+    "nl": "Thermische desinfectie (na volgende warmwaterbereiding)",
+    "fr": "Désinfection thermique continue"
   },
   "getable": true,
   "setable": true,

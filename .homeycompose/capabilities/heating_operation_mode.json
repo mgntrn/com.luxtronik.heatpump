@@ -3,7 +3,8 @@
   "title": {
     "en": "Heating Operation Mode",
     "de": "Heizung Betriebsart",
-    "nl": "Verwarming bedrijfsmodus"
+    "nl": "Verwarming bedrijfsmodus",
+    "fr": "Mode de chauffage"
   },
   "values": [
     {
@@ -11,7 +12,8 @@
       "title": {
         "en": "Automatic",
         "de": "Automatik",
-        "nl": "Automatisch"
+        "nl": "Automatisch",
+        "fr": "Automatique"
       }
     },
     {
@@ -19,7 +21,8 @@
       "title": {
         "en": "Second Heat Source",
         "de": "Zuheizer",
-        "nl": "Bijverwarming"
+        "nl": "Bijverwarming",
+        "fr": "Source de chaleur secondaire"
       }
     },
     {
@@ -27,7 +30,8 @@
       "title": {
         "en": "Party",
         "de": "Party",
-        "nl": "Party"
+        "nl": "Party",
+        "fr": "Fête"
       }
     },
     {
@@ -35,7 +39,8 @@
       "title": {
         "en": "Holidays",
         "de": "Ferien",
-        "nl": "Vakantie"
+        "nl": "Vakantie",
+        "fr": "Vacances"
       }
     },
     {
@@ -43,7 +48,8 @@
       "title": {
         "en": "Off",
         "de": "Aus",
-        "nl": "Uit"
+        "nl": "Uit",
+        "fr": "Arrêt"
       }
     }
   ],

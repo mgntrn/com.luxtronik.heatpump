@@ -3,7 +3,8 @@
   "title": {
     "en": "Heat Source Outlet",
     "de": "Wärmequelle Ausgang",
-    "nl": "Warmtebron uitgang"
+    "nl": "Warmtebron uitgang",
+    "fr": "Source de chaleur sortie"
   },
   "units": {
     "en": "°C",

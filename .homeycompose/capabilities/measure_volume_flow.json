@@ -3,7 +3,8 @@
   "title": {
     "en": "Volume Flow",
     "de": "Volumenstrom",
-    "nl": "Volumestroom"
+    "nl": "Volumestroom",
+    "fr": "Débit volumique"
   },
   "units": {
     "en": "l/h",

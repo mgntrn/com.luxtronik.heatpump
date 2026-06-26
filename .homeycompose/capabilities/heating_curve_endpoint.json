@@ -3,7 +3,8 @@
   "title": {
     "en": "Heating Curve Endpoint",
     "de": "Heizkurve Endpunkt",
-    "nl": "Stooklijn eindpunt"
+    "nl": "Stooklijn eindpunt",
+    "fr": "Point final courbe de chauffe"
   },
   "units": {
     "en": "°C",

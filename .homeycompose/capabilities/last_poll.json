@@ -3,7 +3,8 @@
   "title": {
     "en": "Last Poll",
     "de": "Letzte Abfrage",
-    "nl": "Laatste opvraging"
+    "nl": "Laatste opvraging",
+    "fr": "Dernière interrogation"
   },
   "getable": true,
   "setable": false,

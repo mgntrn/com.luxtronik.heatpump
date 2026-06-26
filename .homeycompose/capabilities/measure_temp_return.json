@@ -3,7 +3,8 @@
   "title": {
     "en": "Return Temperature",
     "de": "Rücklauftemperatur",
-    "nl": "Retourtemperatuur"
+    "nl": "Retourtemperatuur",
+    "fr": "Température retour"
   },
   "units": {
     "en": "°C",

@@ -3,7 +3,8 @@
   "title": {
     "en": "Heat Pump State",
     "de": "Wärmepumpen Status",
-    "nl": "Warmtepompstatus"
+    "nl": "Warmtepompstatus",
+    "fr": "État pompe à chaleur"
   },
   "getable": true,
   "setable": false,

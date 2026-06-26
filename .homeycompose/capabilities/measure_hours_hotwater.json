@@ -3,7 +3,8 @@
   "title": {
     "en": "Hot Water Hours",
     "de": "Betriebsstunden Brauchwasser",
-    "nl": "Bedrijfsuren warmwater"
+    "nl": "Bedrijfsuren warmwater",
+    "fr": "Heures eau chaude"
   },
   "units": {
     "en": "h",

@@ -3,7 +3,8 @@
   "title": {
     "en": "Heat Pump State",
     "de": "Wärmepumpen Status",
-    "nl": "Warmtepompstatus"
+    "nl": "Warmtepompstatus",
+    "fr": "État pompe à chaleur"
   },
   "values": [
     {
@@ -11,7 +12,8 @@
       "title": {
         "en": "Heating",
         "de": "Heizen",
-        "nl": "Verwarmen"
+        "nl": "Verwarmen",
+        "fr": "Chauffage"
       }
     },
     {
@@ -19,7 +21,8 @@
       "title": {
         "en": "Hot Water",
         "de": "Warmwasser",
-        "nl": "Warmwater"
+        "nl": "Warmwater",
+        "fr": "Eau chaude"
       }
     },
     {
@@ -27,7 +30,8 @@
       "title": {
         "en": "Swimming Pool",
         "de": "Schwimmbad",
-        "nl": "Zwembad"
+        "nl": "Zwembad",
+        "fr": "Piscine"
       }
     },
     {
@@ -35,7 +39,8 @@
       "title": {
         "en": "EVU Lock",
         "de": "EVU-Sperre",
-        "nl": "EVU-blokkering"
+        "nl": "EVU-blokkering",
+        "fr": "Blocage EVU"
       }
     },
     {
@@ -43,7 +48,8 @@
       "title": {
         "en": "Defrost",
         "de": "Abtauen",
-        "nl": "Ontdooien"
+        "nl": "Ontdooien",
+        "fr": "Dégivrage"
       }
     },
     {
@@ -51,7 +57,8 @@
       "title": {
         "en": "Off",
         "de": "Aus",
-        "nl": "Uit"
+        "nl": "Uit",
+        "fr": "Arrêt"
       }
     },
     {
@@ -59,7 +66,8 @@
       "title": {
         "en": "External",
         "de": "Extern",
-        "nl": "Extern"
+        "nl": "Extern",
+        "fr": "Externe"
       }
     },
     {
@@ -67,7 +75,8 @@
       "title": {
         "en": "Cooling",
         "de": "Kühlen",
-        "nl": "Koelen"
+        "nl": "Koelen",
+        "fr": "Refroidissement"
       }
     },
     {
@@ -75,7 +84,8 @@
       "title": {
         "en": "Standby",
         "de": "Standby",
-        "nl": "Stand-by"
+        "nl": "Stand-by",
+        "fr": "Veille"
       }
     },
     {
@@ -83,7 +93,8 @@
       "title": {
         "en": "Unknown",
         "de": "Unbekannt",
-        "nl": "Onbekend"
+        "nl": "Onbekend",
+        "fr": "Inconnu"
       }
     }
   ],

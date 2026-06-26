@@ -3,7 +3,8 @@
   "title": {
     "en": "Error",
     "de": "Fehler",
-    "nl": "Fout"
+    "nl": "Fout",
+    "fr": "Erreur"
   },
   "getable": true,
   "setable": false,

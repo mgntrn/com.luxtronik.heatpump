@@ -3,7 +3,8 @@
   "title": {
     "en": "Hot Water Status",
     "de": "Warmwasser Status",
-    "nl": "Warmwaterstatus"
+    "nl": "Warmwaterstatus",
+    "fr": "Statut eau chaude"
   },
   "getable": true,
   "setable": false,

@@ -3,7 +3,8 @@
   "title": {
     "en": "Cooling Release Temperature",
     "de": "Kühlung Freigabe-Temperatur",
-    "nl": "Koeling vrijgavetemperatuur"
+    "nl": "Koeling vrijgavetemperatuur",
+    "fr": "Température de libération refroidissement"
   },
   "units": {
     "en": "°C",

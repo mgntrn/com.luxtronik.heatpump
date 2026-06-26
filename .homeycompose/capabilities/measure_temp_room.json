@@ -3,7 +3,8 @@
   "title": {
     "en": "Room Temperature",
     "de": "Raumtemperatur",
-    "nl": "Ruimtetemperatuur"
+    "nl": "Ruimtetemperatuur",
+    "fr": "Température ambiante"
   },
   "units": {
     "en": "°C",

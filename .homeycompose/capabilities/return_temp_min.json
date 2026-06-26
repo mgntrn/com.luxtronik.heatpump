@@ -3,7 +3,8 @@
   "title": {
     "en": "Return Temperature Min.",
     "de": "Rücklauftemperatur Minimum",
-    "nl": "Retourtemperatuur minimum"
+    "nl": "Retourtemperatuur minimum",
+    "fr": "Température retour min."
   },
   "units": {
     "en": "°C",

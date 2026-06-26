@@ -3,7 +3,8 @@
   "title": {
     "en": "Hot Water Boost (Party)",
     "de": "Brauchwasser Schnellladung (Party)",
-    "nl": "Warmwater snellading (party)"
+    "nl": "Warmwater snellading (party)",
+    "fr": "Boost eau chaude (fête)"
   },
   "getable": true,
   "setable": true,

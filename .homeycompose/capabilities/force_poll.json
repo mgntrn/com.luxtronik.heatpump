@@ -3,7 +3,8 @@
   "title": {
     "en": "Refresh",
     "de": "Aktualisieren",
-    "nl": "Vernieuwen"
+    "nl": "Vernieuwen",
+    "fr": "Actualiser"
   },
   "getable": false,
   "setable": true,

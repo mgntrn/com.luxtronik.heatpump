@@ -3,7 +3,8 @@
   "title": {
     "en": "Outdoor Temperature",
     "de": "Aussentemperatur",
-    "nl": "Buitentemperatuur"
+    "nl": "Buitentemperatuur",
+    "fr": "Température extérieure"
   },
   "units": {
     "en": "°C",

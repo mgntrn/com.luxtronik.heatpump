@@ -3,7 +3,8 @@
   "title": {
     "en": "Cooling Hours",
     "de": "Betriebsstunden Kühlung",
-    "nl": "Bedrijfsuren koeling"
+    "nl": "Bedrijfsuren koeling",
+    "fr": "Heures refroidissement"
   },
   "units": {
     "en": "h",

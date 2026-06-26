@@ -3,7 +3,8 @@
   "title": {
     "en": "Cooling Operation Mode",
     "de": "Kühlbetrieb Betriebsart",
-    "nl": "Koeling bedrijfsmodus"
+    "nl": "Koeling bedrijfsmodus",
+    "fr": "Mode de refroidissement"
   },
   "values": [
     {
@@ -11,7 +12,8 @@
       "title": {
         "en": "Off",
         "de": "Aus",
-        "nl": "Uit"
+        "nl": "Uit",
+        "fr": "Arrêt"
       }
     },
     {
@@ -19,7 +21,8 @@
       "title": {
         "en": "Automatic",
         "de": "Automatik",
-        "nl": "Automatisch"
+        "nl": "Automatisch",
+        "fr": "Automatique"
       }
     }
   ],

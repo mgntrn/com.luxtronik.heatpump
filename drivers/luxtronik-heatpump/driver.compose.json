@@ -197,8 +197,7 @@
         "en": "Hot Water Actual",
         "de": "Warmwasser Istwert"
       },
-      "preventInsights": true,
-      "preventTag": true
+      "preventInsights": true
     },
     "target_temperature.heating": {
       "title": {

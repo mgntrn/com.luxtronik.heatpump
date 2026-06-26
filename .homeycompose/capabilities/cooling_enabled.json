@@ -3,7 +3,8 @@
   "title": {
     "en": "Cooling Enabled",
     "de": "Kühlung freigegeben",
-    "nl": "Koeling vrijgegeven"
+    "nl": "Koeling vrijgegeven",
+    "fr": "Refroidissement activé"
   },
   "getable": true,
   "setable": false,

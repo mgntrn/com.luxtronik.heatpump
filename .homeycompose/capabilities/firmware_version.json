@@ -3,7 +3,8 @@
   "title": {
     "en": "Firmware Version",
     "de": "Firmware Version",
-    "nl": "Firmwareversie"
+    "nl": "Firmwareversie",
+    "fr": "Version firmware"
   },
   "getable": true,
   "setable": false,

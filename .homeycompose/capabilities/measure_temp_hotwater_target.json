@@ -3,7 +3,8 @@
   "title": {
     "en": "Hot Water Target",
     "de": "Warmwasser Soll",
-    "nl": "Warmwater streefwaarde"
+    "nl": "Warmwater streefwaarde",
+    "fr": "Consigne eau chaude"
   },
   "units": {
     "en": "°C",

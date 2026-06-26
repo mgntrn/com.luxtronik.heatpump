@@ -3,7 +3,8 @@
   "title": {
     "en": "Heating Status",
     "de": "Heizung Status",
-    "nl": "Verwarmingsstatus"
+    "nl": "Verwarmingsstatus",
+    "fr": "Statut chauffage"
   },
   "getable": true,
   "setable": false,
