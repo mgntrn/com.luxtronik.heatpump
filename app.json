@@ -1777,10 +1777,6 @@
           },
           "preventInsights": true,
           "preventTag": true
-        },
-        "heating_temperature_correction": {
-          "preventInsights": true,
-          "preventTag": true
         }
       },
       "images": {
