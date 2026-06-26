@@ -674,7 +674,22 @@ class LuxtronikHeatpumpDevice extends Device {
 
   _connectPump() {
     try {
-      this._pump = new luxtronik.createConnection(this._ip, this._port);
+      this._pump = new luxtronik.createConnection(this._ip, this._port, {
+        // RBE-Raumdisplay: Ist-/Soll-Raumtemperatur liegen bei neuerer Firmware auf
+        // Calc-Index 227/228 (×10). Der Legacy-Key 'temperaturw_RFV' (Index 23) liefert
+        // dort nur den "kein Sensor"-Platzhalter (−3.7 °C). luxtronik2 mappt 227/228 nicht,
+        // daher hier per onProcessValues nachreichen.
+        onProcessValues: (values) => {
+          const extra = {};
+          // values ist array-ähnlich (kein echtes Array → kein Array.isArray-Guard).
+          // Indizes direkt prüfen; ältere Firmware ohne RBE liefert hier undefined → Skip.
+          if (values && typeof values[227] === 'number' && typeof values[228] === 'number') {
+            extra.rbe_room_temperature        = values[227] / 10;
+            extra.rbe_room_temperature_target = values[228] / 10;
+          }
+          return extra;
+        },
+      });
       this.log(`Verbunden mit ${this._ip}:${this._port}`);
     } catch (err) {
       this.error('Verbindung fehlgeschlagen:', err.message);
@@ -863,9 +878,13 @@ class LuxtronikHeatpumpDevice extends Device {
     const suctionAirTemp = this._n(v.Temp_Lueftung_Zuluft);
     await this._setCapabilityConditional('measure_temp_suction_air', suctionAirTemp, suctionAirTemp !== null && suctionAirTemp > 0);
     // Raumtemperatur (nur mit RBE-Raumdisplay — Capability nur anzeigen wenn Wert > 0)
-    // Hinweis: Lib-Key ist 'temperaturw_RFV' (Tippfehler in luxtronik2, kleines t + 'w')
-    const roomTemp       = this._n(v.temperaturw_RFV);
-    const roomTempTarget = this._n(v.Temperatur_RFV2);
+    // Neuere Firmware liefert Ist/Soll auf Calc-Index 227/228 (via onProcessValues injiziert).
+    // Fallback auf den Legacy-Key 'temperaturw_RFV' (Index 23, Tippfehler in luxtronik2) für
+    // ältere Firmware. Index 23 liefert auf neueren Geräten nur −3.7 °C (kein Sensor).
+    let roomTemp       = this._n(v.rbe_room_temperature);
+    let roomTempTarget = this._n(v.rbe_room_temperature_target);
+    if (roomTemp === null || roomTemp <= 0)             roomTemp       = this._n(v.temperaturw_RFV);
+    if (roomTempTarget === null || roomTempTarget <= 0) roomTempTarget = this._n(v.Temperatur_RFV2);
     await this._setCapabilityConditional('measure_temp_room',        roomTemp,       roomTemp !== null && roomTemp > 0);
     await this._setCapabilityConditional('measure_temp_room_target', roomTempTarget, roomTempTarget !== null && roomTempTarget > 0);
 
